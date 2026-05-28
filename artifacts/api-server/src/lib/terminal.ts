@@ -37,14 +37,7 @@ const AGENT_REGISTRY: Record<string, { file: string; args: string[] }> = {
   // one-line banner reminding the user how to auth; bankr itself is on
   // PATH (installed in the Dockerfile), and BANKR_API_KEY is in the
   // PTY env via the per-session key bag.
-  bankr: {
-    file: "/bin/bash",
-    args: [
-      "-l",
-      "-c",
-      "printf '\\033[38;5;215m─ bankr pane ─\\033[0m  try: \\033[1mbankr login --api-key $BANKR_API_KEY\\033[0m, then \\033[1mbankr wallet balance\\033[0m  (\\033[2mbankr --help\\033[0m for all commands)\\n\\n'; exec bash -l",
-    ],
-  },
+  bankr: { file: process.env.SHELL ?? "/bin/bash", args: ["-l"] },
   venice: {
     file: "aider",
     args: [
