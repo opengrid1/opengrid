@@ -62,12 +62,47 @@ ENV NODE_ENV=production \
     SERVE_WEB=1 \
     WORKSPACES_ROOT=/var/lib/opengrid
 
-# python3 is occasionally needed by `aider` and by some CLI agents. ca-certs
-# for outbound HTTPS to LLM providers. tini for proper PID 1 + signal handling.
+# System deps:
+#   python3 + pip   — aider-chat runtime
+#   ca-certificates — outbound HTTPS to LLM providers
+#   tini            — proper PID 1 + signal handling
+#   curl            — cursor-agent installer
+#   git             — many agents shell out to git
 RUN apt-get update \
   && apt-get install -y --no-install-recommends \
-       python3 ca-certificates tini \
+       python3 python3-pip python3-venv ca-certificates tini curl git \
   && rm -rf /var/lib/apt/lists/*
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Agent CLIs.
+#
+# Mapping to AGENT_REGISTRY in artifacts/api-server/src/lib/terminal.ts:
+#   claude       → @anthropic-ai/claude-code  (npm)
+#   codex        → @openai/codex              (npm)
+#   gemini       → @google/gemini-cli         (npm)
+#   cursor-agent → cursor.com installer       (curl | bash)
+#   aider        → aider-chat                 (pip, used by `venice` panel)
+#   grok         → xAI grok-cli               (not on public npm — manual)
+#
+# Installed globally before the USER drop so any per-session HOME override
+# still resolves them via /usr/local/bin on PATH. PTY children launched by
+# the API server inherit this PATH.
+#
+# `|| true` per agent so a transient registry failure for one CLI doesn't
+# tank the whole image build — server reports availability via /api/cli-status.
+# ──────────────────────────────────────────────────────────────────────────────
+RUN set -eux \
+  && npm config set fund false \
+  && npm config set audit false \
+  && (npm install -g @anthropic-ai/claude-code || echo "WARN: claude-code install failed") \
+  && (npm install -g @openai/codex             || echo "WARN: codex install failed") \
+  && (npm install -g @google/gemini-cli        || echo "WARN: gemini-cli install failed") \
+  && (pip3 install --break-system-packages --no-cache-dir aider-chat || echo "WARN: aider install failed") \
+  && (curl -fsSL https://cursor.com/install | bash || echo "WARN: cursor-agent install failed") \
+  && if [ -f /root/.local/bin/cursor-agent ]; then \
+        install -m 0755 /root/.local/bin/cursor-agent /usr/local/bin/cursor-agent; \
+     fi \
+  && npm cache clean --force || true
 
 # Non-root.
 RUN useradd --system --create-home --uid 10001 opengrid \
