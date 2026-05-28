@@ -69,9 +69,9 @@ export const AGENT_PRESETS: Record<AgentType, AgentPreset> = {
   bankr: {
     id: "bankr",
     name: "Bankr",
-    command: "bankr",
-    args: [],
-    description: "Financial agent CLI — wallet / agent / trade (paste BANKR_API_KEY, then `bankr login --api-key $BANKR_API_KEY`)",
+    command: "bash",
+    args: ["-l"],
+    description: "Financial agent shell — bankr CLI on PATH. Paste BANKR_API_KEY, then `bankr login --api-key $BANKR_API_KEY`, then `bankr wallet balance` / `bankr agent run` / etc.",
     install: "npm i -g @bankr/cli",
   },
   shell: {

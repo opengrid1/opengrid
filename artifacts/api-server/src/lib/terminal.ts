@@ -29,13 +29,22 @@ const AGENT_REGISTRY: Record<string, { file: string; args: string[] }> = {
   gemini: { file: "gemini", args: [] },
   cursor: { file: "cursor-agent", args: [] },
   grok: { file: "grok", args: [] },
-  // @bankr/cli — financial agent CLI from the Bankrbot ecosystem. Spawning
-  // with no args drops into the top-level command surface (wallet / agent /
-  // trade namespaces); user authenticates per-pane with `bankr login
-  // --api-key bk_...` against the BANKR_API_KEY they paste via the Keys
-  // panel. Sits naturally next to the coding agents — same broadcast bar,
-  // same canvas, but funded by its own wallet.
-  bankr: { file: "bankr", args: [] },
+  // @bankr/cli — financial agent CLI from the Bankrbot ecosystem.
+  // Unlike claude/codex/gemini (REPLs that own the TTY), bankr is a
+  // subcommand-style CLI (`bankr login`, `bankr wallet balance`, `bankr
+  // agent run`) — running it bare prints help and exits, which would
+  // disconnect the pane immediately. So we spawn a login shell with a
+  // one-line banner reminding the user how to auth; bankr itself is on
+  // PATH (installed in the Dockerfile), and BANKR_API_KEY is in the
+  // PTY env via the per-session key bag.
+  bankr: {
+    file: "/bin/bash",
+    args: [
+      "-l",
+      "-c",
+      "printf '\\033[38;5;215m─ bankr pane ─\\033[0m  try: \\033[1mbankr login --api-key $BANKR_API_KEY\\033[0m, then \\033[1mbankr wallet balance\\033[0m  (\\033[2mbankr --help\\033[0m for all commands)\\n\\n'; exec bash -l",
+    ],
+  },
   venice: {
     file: "aider",
     args: [
