@@ -53,7 +53,7 @@ RUN pnpm --filter @workspace/api-spec run codegen \
 
 # Prune to production deps for the api-server only (we don't ship the SPA's
 # devDeps in the runtime image — only its built static files).
-RUN pnpm --filter @workspace/api-server deploy --prod /out/api-server
+RUN pnpm --filter @workspace/api-server deploy --legacy --prod /out/api-server
 
 # ──────────────────────────────────────────────────────────────────────────────
 FROM node:20-bookworm-slim AS runtime
