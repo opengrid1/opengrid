@@ -26,11 +26,12 @@ const AGENT_VISUALS: Record<AgentType, { color: string; Icon: React.ComponentTyp
   cursor: { color: '#FFFFFF', Icon: MousePointer2 },
   grok: { color: '#FFFFFF', Icon: XaiIcon },
   venice: { color: '#E64545', Icon: VeniceIcon },
+  bankr: { color: '#FFB347', Icon: TerminalIcon },
   shell: { color: '#888888', Icon: TerminalIcon },
   files: { color: '#A78BFA', Icon: FolderTree },
 };
 
-const ORDER: AgentType[] = ['claude', 'codex', 'gemini', 'cursor', 'grok', 'venice', 'shell', 'files'];
+const ORDER: AgentType[] = ['claude', 'codex', 'gemini', 'cursor', 'grok', 'venice', 'bankr', 'shell', 'files'];
 
 export function AddPanelDialog({ open, onOpenChange, onAdd }: AddPanelDialogProps) {
   const { status, loading } = useCliStatus();

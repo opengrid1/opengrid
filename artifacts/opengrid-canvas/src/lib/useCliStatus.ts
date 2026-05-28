@@ -10,6 +10,7 @@ const DEFAULT: CliStatus = {
   cursor: false,
   grok: false,
   venice: false,
+  bankr: false,
   shell: true,
   files: true,
 };

@@ -32,6 +32,7 @@ const AGENT_ICONS: Record<AgentType, React.ComponentType<{ size?: number; classN
   cursor: MousePointer2,
   grok: XaiIcon,
   venice: VeniceIcon,
+  bankr: TerminalIcon,
   shell: TerminalIcon,
   files: FolderTree,
 };

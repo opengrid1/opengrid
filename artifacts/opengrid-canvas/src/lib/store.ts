@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 
-export type AgentType = "claude" | "codex" | "gemini" | "cursor" | "grok" | "venice" | "shell" | "files";
+export type AgentType = "claude" | "codex" | "gemini" | "cursor" | "grok" | "venice" | "bankr" | "shell" | "files";
 
 export interface AgentPreset {
   id: AgentType;
@@ -65,6 +65,14 @@ export const AGENT_PRESETS: Record<AgentType, AgentPreset> = {
     ],
     description: "Private/uncensored — Venice models via Aider (set VENICE_API_KEY=…, exported as OPENAI_API_KEY)",
     install: "pip install aider-chat",
+  },
+  bankr: {
+    id: "bankr",
+    name: "Bankr",
+    command: "bankr",
+    args: [],
+    description: "Financial agent CLI — wallet / agent / trade (paste BANKR_API_KEY, then `bankr login --api-key $BANKR_API_KEY`)",
+    install: "npm i -g @bankr/cli",
   },
   shell: {
     id: "shell",

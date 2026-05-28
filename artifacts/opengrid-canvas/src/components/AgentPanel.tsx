@@ -23,6 +23,7 @@ const AGENT_VISUALS: Record<AgentType, { color: string; border: string; Icon: Re
   cursor: { color: '#FFFFFF', border: 'rgba(255,255,255,0.6)', Icon: MousePointer2 },
   grok: { color: '#FFFFFF', border: 'rgba(255,255,255,0.6)', Icon: XaiIcon },
   venice: { color: '#E64545', border: 'rgba(230,69,69,0.6)', Icon: VeniceIcon },
+  bankr: { color: '#FFB347', border: 'rgba(255,179,71,0.6)', Icon: TerminalIcon },
   shell: { color: '#888888', border: 'rgba(255,255,255,0.25)', Icon: TerminalIcon },
   files: { color: '#A78BFA', border: 'rgba(167,139,250,0.6)', Icon: FolderTree },
 };
