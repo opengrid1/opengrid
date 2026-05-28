@@ -47,6 +47,9 @@ Thumbs.db
 # Replit
 .cache/
 .local/
+.replit
+.replitignore
+.replit-artifact/
 replit.md
 attached_assets/
 screenshots/
