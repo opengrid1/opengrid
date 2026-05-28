@@ -172,6 +172,7 @@ const AGENTS: { name: string; color: string; install: string }[] = [
   { name: "cursor",  color: "#C9A6FF", install: "curl https://cursor.com/install -fsS | bash" },
   { name: "grok",    color: "#F472B6", install: "npm i -g @xai/grok-cli" },
   { name: "aider",   color: "#F1FA8C", install: "pip install aider-chat" },
+  { name: "bankr",   color: "#FFB347", install: "npm i -g @bankr/cli" },
 ];
 
 const NAV_LINKS = [

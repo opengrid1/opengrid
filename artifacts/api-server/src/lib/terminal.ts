@@ -29,6 +29,13 @@ const AGENT_REGISTRY: Record<string, { file: string; args: string[] }> = {
   gemini: { file: "gemini", args: [] },
   cursor: { file: "cursor-agent", args: [] },
   grok: { file: "grok", args: [] },
+  // @bankr/cli — financial agent CLI from the Bankrbot ecosystem. Spawning
+  // with no args drops into the top-level command surface (wallet / agent /
+  // trade namespaces); user authenticates per-pane with `bankr login
+  // --api-key bk_...` against the BANKR_API_KEY they paste via the Keys
+  // panel. Sits naturally next to the coding agents — same broadcast bar,
+  // same canvas, but funded by its own wallet.
+  bankr: { file: "bankr", args: [] },
   venice: {
     file: "aider",
     args: [

@@ -48,6 +48,9 @@ export const ALLOWED_API_KEYS = new Set<string>([
   "VENICE_API_KEY",
   "AIDER_MODEL", "AIDER_API_KEY",
   "GITHUB_TOKEN", "GH_TOKEN",
+  // Bankr CLI API key (format: bk_...). Picked up by `@bankr/cli` for
+  // non-interactive login in fresh per-session PTYs.
+  "BANKR_API_KEY",
 ]);
 
 interface UserSession {

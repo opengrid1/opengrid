@@ -12,6 +12,7 @@ const KEY_FIELDS: { name: string; label: string; placeholder: string; agent: str
   { name: "XAI_API_KEY",                  label: "xAI (grok)",              placeholder: "xai-…",      agent: "grok" },
   { name: "CURSOR_API_KEY",               label: "Cursor",                  placeholder: "key_…",      agent: "cursor" },
   { name: "VENICE_API_KEY",               label: "Venice (aider)",          placeholder: "vc-…",       agent: "venice" },
+  { name: "BANKR_API_KEY",                label: "Bankr",                   placeholder: "bk_…",       agent: "bankr" },
 ];
 
 interface KeysPanelProps {

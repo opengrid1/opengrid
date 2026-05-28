@@ -86,6 +86,7 @@ RUN apt-get update \
 #   cursor-agent → cursor.com installer       (curl | bash)
 #   aider        → aider-chat                 (pip, used by `venice` panel)
 #   grok         → xAI grok-cli               (not on public npm — manual)
+#   bankr        → @bankr/cli                 (npm)
 #
 # Installed globally before the USER drop so any per-session HOME override
 # still resolves them via /usr/local/bin on PATH. PTY children launched by
@@ -100,6 +101,7 @@ RUN set -eux \
   && (npm install -g @anthropic-ai/claude-code || echo "WARN: claude-code install failed") \
   && (npm install -g @openai/codex             || echo "WARN: codex install failed") \
   && (npm install -g @google/gemini-cli        || echo "WARN: gemini-cli install failed") \
+  && (npm install -g @bankr/cli                || echo "WARN: bankr install failed") \
   && (pip3 install --break-system-packages --no-cache-dir aider-chat || echo "WARN: aider install failed") \
   && (curl -fsSL https://cursor.com/install | bash || echo "WARN: cursor-agent install failed") \
   && if [ -f /root/.local/bin/cursor-agent ]; then \

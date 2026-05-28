@@ -5,7 +5,7 @@ import { promisify } from "util";
 const execFileAsync = promisify(execFile);
 const router: IRouter = Router();
 
-const CLI_TO_CHECK = ["claude", "codex", "gemini", "cursor-agent", "grok", "aider"] as const;
+const CLI_TO_CHECK = ["claude", "codex", "gemini", "cursor-agent", "grok", "aider", "bankr"] as const;
 
 async function hasCommand(name: string): Promise<boolean> {
   try {
@@ -36,6 +36,7 @@ router.get("/cli-status", async (_req, res) => {
     cursor: false,
     grok: false,
     venice: false,
+    bankr: false,
     shell: true,
   };
   for (const [name, ok] of entries) {
