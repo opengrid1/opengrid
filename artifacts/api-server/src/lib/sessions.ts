@@ -1,5 +1,17 @@
+import fs from "fs";
+import path from "path";
 import { logger } from "./logger";
 import type { WebSocket } from "ws";
+import { ensureSessionWorkspace, isInsideSessionWorkspace } from "./workspaces";
+
+// ANSI escape sequences inflate raw byte counts by 3-5x in interactive
+// terminals (color codes, cursor moves, alt-screen toggles). Strip before
+// counting so the "context used" estimate roughly tracks the agent's
+// real conversation transcript, not its rendering overhead.
+const ANSI_STRIP_RE = /\x1b\[[0-9;?]*[a-zA-Z]|\x1b\][^\x07]*\x07|\x1b[=>]/g;
+function visibleByteLength(s: string): number {
+  return Buffer.byteLength(s.replace(ANSI_STRIP_RE, ""), "utf8");
+}
 
 export interface IPty {
   write: (data: string) => void;
@@ -82,6 +94,70 @@ export interface Session {
   detachTimer: NodeJS.Timeout | null;
   exited: boolean;
   exitCode: number | null;
+  // Approximate token-accounting counters. Both are ANSI-stripped byte counts
+  // (a coarse but reliable proxy for actual conversation token usage). The
+  // client uses (bytesIn + bytesOut) / 4 ÷ window-size to render the
+  // per-pane "context used" indicator.
+  bytesIn: number;     // PTY → user (agent output, trimmed of ANSI chrome)
+  bytesOut: number;    // user → PTY (typing + paste)
+  startedAt: number;
+}
+
+export interface SessionUsage {
+  bytesIn: number;
+  bytesOut: number;
+  startedAt: number;
+}
+
+export function getSessionUsage(session: Session): SessionUsage {
+  return { bytesIn: session.bytesIn, bytesOut: session.bytesOut, startedAt: session.startedAt };
+}
+
+export function recordInput(session: Session, data: string): void {
+  session.bytesOut += Buffer.byteLength(data, "utf8");
+}
+
+// Write the current ring buffer to a markdown file inside the user's
+// workspace so they have an escape hatch right before the agent compacts
+// its context out from under them. Returns the path written.
+export function snapshotSession(session: Session): { path: string } | { error: string } {
+  let workspaceRoot: string;
+  try {
+    workspaceRoot = ensureSessionWorkspace(session.userSessionId);
+  } catch (err) {
+    return { error: `Cannot resolve workspace: ${(err as Error).message}` };
+  }
+  const snapshotsDir = path.join(workspaceRoot, "snapshots");
+  try {
+    fs.mkdirSync(snapshotsDir, { recursive: true, mode: 0o700 });
+  } catch (err) {
+    return { error: `Cannot create snapshots dir: ${(err as Error).message}` };
+  }
+  // Sanitize agent + panel components to filesystem-safe slugs.
+  const safeAgent = session.agent.replace(/[^a-zA-Z0-9_-]/g, "");
+  const safePanel = session.panelId.replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 16);
+  const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+  const file = path.join(snapshotsDir, `${safeAgent}-${safePanel}-${stamp}.md`);
+  if (!isInsideSessionWorkspace(session.userSessionId, file)) {
+    return { error: "Snapshot path escaped workspace" };
+  }
+  const cleanBuffer = session.buffer.replace(ANSI_STRIP_RE, "");
+  const header =
+    `# Open Grid snapshot — ${session.agent}\n\n` +
+    `- Panel: \`${session.panelId}\`\n` +
+    `- Started: ${new Date(session.startedAt).toISOString()}\n` +
+    `- Captured: ${new Date().toISOString()}\n` +
+    `- cwd: \`${session.cwd}\`\n` +
+    `- Approx tokens used: ~${Math.round((session.bytesIn + session.bytesOut) / 4)}\n` +
+    `\n---\n\n\`\`\`\n`;
+  const footer = "\n```\n";
+  try {
+    fs.writeFileSync(file, header + cleanBuffer + footer, { mode: 0o600 });
+  } catch (err) {
+    return { error: `Snapshot write failed: ${(err as Error).message}` };
+  }
+  logger.info({ sessionId: session.id, file }, "Snapshot written");
+  return { path: path.relative(workspaceRoot, file) };
 }
 
 const sessions = new Map<string, Session>();
@@ -167,9 +243,13 @@ export async function createSession(args: SpawnArgs): Promise<Session | { error:
     detachTimer: null,
     exited: false,
     exitCode: null,
+    bytesIn: 0,
+    bytesOut: 0,
+    startedAt: Date.now(),
   };
 
   pty.onData((data) => {
+    session.bytesIn += visibleByteLength(data);
     session.buffer = (session.buffer + data).slice(-BUFFER_MAX_BYTES);
     const ws = session.ws;
     if (!ws || ws.readyState !== 1 /* OPEN */) return;
@@ -211,6 +291,10 @@ export function attachWs(session: Session, ws: WebSocket): void {
 
 export function sessionCount(): number {
   return sessions.size;
+}
+
+export function allSessions(): Iterable<Session> {
+  return sessions.values();
 }
 
 export function shutdownAllSessions(): void {

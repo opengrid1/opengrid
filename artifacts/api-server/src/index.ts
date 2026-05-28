@@ -1,8 +1,13 @@
 import http from "http";
 import app from "./app";
 import { logger } from "./lib/logger";
-import { handleUpgrade, closeAllTerminalWs } from "./lib/terminal";
+import { handleUpgrade, closeAllTerminalWs, broadcastShutdown } from "./lib/terminal";
 import { shutdownAllSessions } from "./lib/sessions";
+
+// Seconds between SIGTERM and actually killing PTYs. Gives the client UI
+// time to render a warning banner so users can copy their work or hit the
+// per-pane "snapshot" button before the agent dies.
+const SHUTDOWN_GRACE_SEC = Number(process.env.SHUTDOWN_GRACE_SEC ?? 4);
 
 const rawPort = process.env["PORT"];
 
@@ -37,14 +42,38 @@ let shuttingDown = false;
 async function shutdown(signal: string): Promise<void> {
   if (shuttingDown) return;
   shuttingDown = true;
-  logger.info({ signal }, "Shutdown requested, draining…");
+  logger.info({ signal, graceSec: SHUTDOWN_GRACE_SEC }, "Shutdown requested, warning clients…");
 
-  // Stop accepting new HTTP connections.
+  // Phase 1: tell every connected terminal that the server is going down.
+  // Doesn't actually fix the session-death problem (Matt is right that the
+  // real fix is process persistence), but it converts "agent vanished
+  // silently mid-thought" into "user got 4 seconds of warning + a snapshot
+  // button". Big perceived improvement for zero new infrastructure.
+  try {
+    const notified = broadcastShutdown(
+      SHUTDOWN_GRACE_SEC,
+      "Server is restarting. Use the snapshot button to save your conversation.",
+    );
+    if (notified > 0) {
+      logger.info({ notified, graceSec: SHUTDOWN_GRACE_SEC }, "Shutdown warning broadcast");
+    }
+  } catch (err) {
+    logger.error({ err }, "Error broadcasting shutdown warning");
+  }
+
+  // Stop accepting new HTTP connections immediately.
   server.close((err) => {
     if (err) logger.error({ err }, "HTTP server close error");
   });
 
-  // Close all open WS sockets, then kill all PTYs deterministically.
+  // Phase 2: wait the grace window so the warning actually reaches the
+  // browser AND the user has a beat to tap "snapshot" before everything
+  // gets killed.
+  await new Promise<void>((resolve) =>
+    setTimeout(resolve, SHUTDOWN_GRACE_SEC * 1000),
+  );
+
+  // Phase 3: tear down WS sockets, then kill all PTYs deterministically.
   try {
     closeAllTerminalWs(1001, "server shutting down");
   } catch (err) {
@@ -57,7 +86,7 @@ async function shutdown(signal: string): Promise<void> {
     logger.error({ err }, "Error shutting down PTY sessions");
   }
 
-  // Give in-flight work a moment, then exit.
+  // Final drain — give in-flight Node IO a moment, then exit.
   setTimeout(() => {
     logger.info("Shutdown complete");
     process.exit(0);

@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
 import Landing from "@/pages/landing";
+import { ShutdownBanner } from "@/components/ShutdownBanner";
 
 const queryClient = new QueryClient();
 
@@ -25,6 +26,7 @@ function App() {
         <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
           <Router />
         </WouterRouter>
+        <ShutdownBanner />
         <Toaster />
       </TooltipProvider>
     </QueryClientProvider>

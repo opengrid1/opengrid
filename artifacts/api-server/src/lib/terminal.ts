@@ -6,7 +6,15 @@ import fs from "fs";
 import { logger } from "./logger";
 import { consumeWsTicket, getUserSession, touchUserSession } from "./auth";
 import { ensureSessionWorkspace, isInsideSessionWorkspace, sessionWorkspacePath } from "./workspaces";
-import { attachWs, createSession, detachWs, getSession } from "./sessions";
+import {
+  attachWs,
+  createSession,
+  detachWs,
+  getSession,
+  recordInput,
+  snapshotSession,
+  getSessionUsage,
+} from "./sessions";
 
 // Server-side allowlist. Clients only send the agent key; they CANNOT specify
 // an arbitrary command. This prevents the WebSocket from being used as a
@@ -37,14 +45,18 @@ const AGENT_REGISTRY: Record<string, { file: string; args: string[] }> = {
 type WireIn =
   | { type: "start"; agent: string; cwd?: string; cols?: number; rows?: number }
   | { type: "input"; data: string }
-  | { type: "resize"; cols: number; rows: number };
+  | { type: "resize"; cols: number; rows: number }
+  | { type: "snapshot" };
 
 type WireOut =
   | { type: "data"; data: string }
   | { type: "replay"; data: string }
   | { type: "exit"; code: number }
   | { type: "error"; message: string }
-  | { type: "ready"; sessionId: string; agent: string; resumed: boolean };
+  | { type: "ready"; sessionId: string; agent: string; resumed: boolean }
+  | { type: "usage"; bytesIn: number; bytesOut: number; startedAt: number }
+  | { type: "snapshot"; path: string }
+  | { type: "shutdown"; inSec: number; message: string };
 
 function send(ws: WebSocket, msg: WireOut) {
   if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(msg));
@@ -153,7 +165,21 @@ function getWss(): WebSocketServer {
         send(ws, { type: "exit", code: existing.exitCode });
       }
       attachWs(existing, ws);
+      const u = getSessionUsage(existing);
+      send(ws, { type: "usage", bytesIn: u.bytesIn, bytesOut: u.bytesOut, startedAt: u.startedAt });
     }
+
+    // Periodic context-usage broadcast so the per-pane indicator stays in
+    // sync without each client having to poll. 5s cadence is sub-perceptual
+    // for a "filling up" bar but cheap (~30 bytes/tick).
+    const usagePush = setInterval(() => {
+      if (ws.readyState !== WebSocket.OPEN) return;
+      const s = getSession(userSessionId, panelId);
+      if (!s) return;
+      const u = getSessionUsage(s);
+      send(ws, { type: "usage", bytesIn: u.bytesIn, bytesOut: u.bytesOut, startedAt: u.startedAt });
+    }, 5_000);
+    usagePush.unref();
 
     ws.on("message", async (msg: Buffer | string) => {
       let parsed: WireIn;
@@ -222,7 +248,24 @@ function getWss(): WebSocketServer {
         }
         case "input": {
           const session = getSession(userSessionId, panelId);
-          if (session && typeof parsed.data === "string") session.pty.write(parsed.data);
+          if (session && typeof parsed.data === "string") {
+            session.pty.write(parsed.data);
+            recordInput(session, parsed.data);
+          }
+          return;
+        }
+        case "snapshot": {
+          const session = getSession(userSessionId, panelId);
+          if (!session) {
+            send(ws, { type: "error", message: "No active session to snapshot." });
+            return;
+          }
+          const res = snapshotSession(session);
+          if ("error" in res) {
+            send(ws, { type: "error", message: res.error });
+            return;
+          }
+          send(ws, { type: "snapshot", path: res.path });
           return;
         }
         case "resize": {
@@ -243,6 +286,7 @@ function getWss(): WebSocketServer {
 
     ws.on("close", () => {
       clearInterval(heartbeat);
+      clearInterval(usagePush);
       liveSockets.delete(ws);
       logger.info({ panelId }, "Terminal WS disconnected");
       const session = getSession(userSessionId, panelId);
@@ -262,6 +306,24 @@ export function closeAllTerminalWs(code: number = 1001, reason: string = "server
     try { ws.close(code, reason); } catch { /* ignore */ }
   }
   liveSockets.clear();
+}
+
+// Pre-shutdown warning. Broadcast to every live terminal WS so the UI can
+// flash a banner before the PTYs are torn down. Matt's point: dying silently
+// on a deploy is the worst failure mode, so at minimum we tell users it's
+// coming.
+export function broadcastShutdown(inSec: number, message: string): number {
+  let n = 0;
+  for (const ws of liveSockets) {
+    if (ws.readyState !== WebSocket.OPEN) continue;
+    try {
+      ws.send(JSON.stringify({ type: "shutdown", inSec, message } satisfies WireOut));
+      n++;
+    } catch {
+      /* ignore */
+    }
+  }
+  return n;
 }
 
 export function handleUpgrade(

@@ -3,11 +3,24 @@ import { Terminal } from '@xterm/xterm';
 import { FitAddon } from '@xterm/addon-fit';
 import { WebLinksAddon } from '@xterm/addon-web-links';
 import '@xterm/xterm/css/xterm.css';
-import { Play, RefreshCcw, Wifi, WifiOff, AlertTriangle, Copy, Keyboard, ClipboardPaste } from 'lucide-react';
+import { Play, RefreshCcw, Wifi, WifiOff, AlertTriangle, Copy, Keyboard, ClipboardPaste, Save } from 'lucide-react';
 import { useBroadcast } from '../lib/broadcast';
 import { apiJson } from '../lib/api';
 import { useCliStatus } from '../lib/useCliStatus';
 import { AgentType, AGENT_PRESETS } from '../lib/store';
+
+// Approximate context-window size (in tokens) per agent. Used only for the
+// "context used" indicator — it's a hint, not enforcement. Values reflect
+// each CLI's default model as of mid-2026; users on smaller models will see
+// the bar fill faster, which is arguably the right behaviour anyway.
+const AGENT_CONTEXT_TOKENS: Partial<Record<AgentType, number>> = {
+  claude: 200_000,
+  codex: 256_000,
+  gemini: 1_000_000,
+  cursor: 200_000,
+  grok: 256_000,
+  venice: 64_000,
+};
 
 interface TerminalTabProps {
   panelId: string;
@@ -46,7 +59,10 @@ type WireOut =
   | { type: 'replay'; data: string }
   | { type: 'ready'; sessionId: string; agent: string; resumed: boolean }
   | { type: 'exit'; code: number }
-  | { type: 'error'; message: string };
+  | { type: 'error'; message: string }
+  | { type: 'usage'; bytesIn: number; bytesOut: number; startedAt: number }
+  | { type: 'snapshot'; path: string }
+  | { type: 'shutdown'; inSec: number; message: string };
 
 const ANSI_RE = /\x1b\[[0-9;?]*[a-zA-Z]/g;
 
@@ -75,6 +91,7 @@ export function TerminalTab({ panelId, agent, sessionId, cwd, onAttentionChange 
   const wsRef = useRef<WebSocket | null>(null);
   const [status, setStatus] = useState<'idle' | 'connecting' | 'connected' | 'disconnected'>('idle');
   const [resumed, setResumed] = useState(false);
+  const [usage, setUsage] = useState<{ bytesIn: number; bytesOut: number } | null>(null);
 
   const broadcast = useBroadcast();
   const { status: cliStatus, loading: cliLoading } = useCliStatus();
@@ -194,6 +211,28 @@ export function TerminalTab({ panelId, agent, sessionId, cwd, onAttentionChange 
           setStatus('disconnected');
           setAttention(false);
           return;
+        case 'usage':
+          // ~4 bytes/token is the standard rule-of-thumb; server already
+          // strips ANSI before counting so this stays in the right
+          // ballpark for both Claude/Codex (English code) and Gemini
+          // (heavier formatting). Imperfect, useful.
+          setUsage({ bytesIn: parsed.bytesIn, bytesOut: parsed.bytesOut });
+          return;
+        case 'snapshot':
+          term.writeln(`\r\n\x1b[36m[snapshot saved: ${parsed.path}]\x1b[0m`);
+          return;
+        case 'shutdown':
+          // Re-broadcast as a window event so a single top-level banner can
+          // show this once (instead of every pane rendering its own).
+          window.dispatchEvent(
+            new CustomEvent('opengrid:shutdown', {
+              detail: { inSec: parsed.inSec, message: parsed.message },
+            }),
+          );
+          term.writeln(
+            `\r\n\x1b[33m[server restarting in ${parsed.inSec}s — tap snapshot to save your work]\x1b[0m`,
+          );
+          return;
       }
     };
 
@@ -286,6 +325,36 @@ export function TerminalTab({ panelId, agent, sessionId, cwd, onAttentionChange 
 
   const installCommand = AGENT_PRESETS[agent as AgentType]?.install;
   const cliMissing = !cliLoading && cliStatus[agent as AgentType] === false;
+
+  // Compute context-usage percent. Returns null when the agent has no
+  // window assigned (shell / files) or no usage data yet.
+  const contextWindow = AGENT_CONTEXT_TOKENS[agent as AgentType];
+  const usagePct: number | null =
+    usage && contextWindow
+      ? Math.min(100, Math.round(((usage.bytesIn + usage.bytesOut) / 4 / contextWindow) * 100))
+      : null;
+  const usageColor =
+    usagePct === null
+      ? ''
+      : usagePct >= 80
+        ? 'bg-red-500/80'
+        : usagePct >= 50
+          ? 'bg-yellow-500/80'
+          : 'bg-emerald-500/70';
+  const usageTextColor =
+    usagePct === null
+      ? 'text-white/40'
+      : usagePct >= 80
+        ? 'text-red-300'
+        : usagePct >= 50
+          ? 'text-yellow-300'
+          : 'text-emerald-300/80';
+
+  const requestSnapshot = () => {
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({ type: 'snapshot' }));
+    }
+  };
 
   // iOS keyboard only opens when focus() is called *synchronously* inside a
   // user gesture. The hidden xterm textarea sometimes loses focus during
@@ -418,9 +487,29 @@ export function TerminalTab({ panelId, agent, sessionId, cwd, onAttentionChange 
           )}
         </div>
 
+        {usagePct !== null && status === 'connected' && (
+          <div
+            className="flex items-center gap-1.5 ml-2"
+            title={
+              `~${Math.round(((usage?.bytesIn ?? 0) + (usage?.bytesOut ?? 0)) / 4).toLocaleString()} / ` +
+              `${contextWindow?.toLocaleString()} tokens used. ` +
+              `${usagePct >= 80 ? 'Older messages may be dropped soon — snapshot to save.' : 'Plenty of room.'}`
+            }
+            data-testid="indicator-context-usage"
+          >
+            <div className="w-12 h-1 bg-white/10 rounded-sm overflow-hidden">
+              <div
+                className={`h-full ${usageColor} transition-[width] duration-500`}
+                style={{ width: `${usagePct}%` }}
+              />
+            </div>
+            <span className={`text-[10px] font-mono ${usageTextColor}`}>{usagePct}%</span>
+          </div>
+        )}
+
         {cwd && (
-          <span className="text-[10px] font-mono text-white/30 truncate ml-2 max-w-[60%]" title={cwd}>
-            {cwd.length > 38 ? '…' + cwd.slice(-37) : cwd}
+          <span className="text-[10px] font-mono text-white/30 truncate ml-2 max-w-[40%]" title={cwd}>
+            {cwd.length > 28 ? '…' + cwd.slice(-27) : cwd}
           </span>
         )}
 
@@ -450,6 +539,17 @@ export function TerminalTab({ panelId, agent, sessionId, cwd, onAttentionChange 
             >
               <ClipboardPaste size={12} />
               paste
+            </button>
+          )}
+          {status === 'connected' && (
+            <button
+              onClick={requestSnapshot}
+              className="flex items-center gap-1 text-[10px] font-mono text-white/40 hover:text-white/80 transition-colors"
+              data-testid="button-terminal-snapshot"
+              title="Save conversation transcript to your workspace (before the agent compacts it)"
+            >
+              <Save size={10} />
+              snapshot
             </button>
           )}
           {status !== 'idle' && (
