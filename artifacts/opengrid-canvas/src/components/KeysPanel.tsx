@@ -43,7 +43,11 @@ export function KeysPanel({ onClose }: KeysPanelProps) {
       for (const f of KEY_FIELDS) {
         const v = values[f.name];
         if (v === undefined) continue;
-        payload[f.name] = v === "" ? null : v;
+        // Trim aggressively — pasted keys from password managers and web
+        // dashboards routinely carry a trailing newline that Anthropic /
+        // OpenAI reject as "Invalid API key".
+        const cleaned = v.trim();
+        payload[f.name] = cleaned === "" ? null : cleaned;
       }
       if (Object.keys(payload).length === 0) {
         setSaving(false);

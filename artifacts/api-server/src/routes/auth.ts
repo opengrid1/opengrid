@@ -79,16 +79,21 @@ router.put(
     let changed = 0;
     for (const [k, v] of Object.entries(incoming)) {
       if (!ALLOWED_API_KEYS.has(k)) continue;
-      if (v === null || v === "") {
+      // Strip surrounding whitespace / newlines — pasted keys from password
+      // managers and web dashboards routinely carry a trailing \n that the
+      // provider API rejects as "Invalid API key", which from the user's POV
+      // looks like a bug in us.
+      const cleaned = typeof v === "string" ? v.trim() : v;
+      if (cleaned === null || cleaned === "") {
         if (k in s.apiKeys) {
           delete s.apiKeys[k];
           changed++;
         }
         continue;
       }
-      if (typeof v !== "string") continue;
-      if (v.length > 4096) continue;
-      s.apiKeys[k] = v;
+      if (typeof cleaned !== "string") continue;
+      if (cleaned.length > 4096) continue;
+      s.apiKeys[k] = cleaned;
       changed++;
     }
     res.json({ ok: true, changed, keys: Object.keys(s.apiKeys) });
