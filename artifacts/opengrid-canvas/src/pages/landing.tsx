@@ -297,7 +297,7 @@ export default function Landing() {
       </nav>
 
       {/* ── HERO ── */}
-      <section className="pt-28 pb-20 px-5 sm:px-6 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-[1.05fr_1.1fr] items-center gap-14 lg:gap-12">
+      <section className="pt-28 pb-20 px-5 sm:px-6 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-[0.85fr_1.35fr] items-center gap-14 lg:gap-10">
         {/* Left: headline */}
         <motion.div
           className="flex flex-col gap-6 w-full min-w-0"
@@ -1085,21 +1085,164 @@ function FeatureCell({
 }
 
 /* ─────────────────────────────────────────
-   Browser mockup — desktop-style window
-   with three terminal panes + broadcast bar.
+   Browser mockup — desktop-style window with a 2x3 grid of terminal panes
+   and an animated broadcast bar. Loops the full "type prompt → broadcast →
+   panes light up → output streams in" sequence on a 12s cadence so the
+   hero feels alive without the user having to click anything. The whole
+   animation is driven off a single 20fps tick (state value 0..239); all
+   pane content is derived from that tick rather than imperatively
+   scheduled, so it's cheap and never desyncs.
 ───────────────────────────────────────── */
+const DEMO_PROMPT = "refactor auth.ts to use jwt";
+
+interface DemoAgent {
+  color: string;
+  name: string;
+  lines: { c: string; t: string }[];
+}
+
+// Mirrors the AGENTS list (same colors, same order) so the hero matches
+// the real agent registry. Each agent gets a distinct, plausible response
+// pattern so the demo reads as 6 actually-different opinions on the same
+// prompt — that's the core value prop, so it needs to be visible at a
+// glance.
+const DEMO_AGENTS: DemoAgent[] = [
+  {
+    color: "#FF9F4A",
+    name: "claude",
+    lines: [
+      { c: "#88a", t: "$ refactor auth.ts" },
+      { c: "#bbb", t: "Reading src/auth/*" },
+      { c: "#bbb", t: "3 entry points." },
+      { c: "#fff", t: "Plan: extract JWT" },
+      { c: "#fff", t: "middleware → shared/" },
+    ],
+  },
+  {
+    color: "#A5C9FF",
+    name: "codex",
+    lines: [
+      { c: "#88a", t: "$ same prompt" },
+      { c: "#bbb", t: "Refactor in-place." },
+      { c: "#bbb", t: "Drafting diff…" },
+      { c: "#fff", t: "+ verifyToken()" },
+    ],
+  },
+  {
+    color: "#74E0BB",
+    name: "gemini",
+    lines: [
+      { c: "#88a", t: "$ same prompt" },
+      { c: "#bbb", t: "Middleware factory" },
+      { c: "#bbb", t: "pattern, then…" },
+      { c: "#fff", t: "wire into express" },
+    ],
+  },
+  {
+    color: "#C9A6FF",
+    name: "cursor",
+    lines: [
+      { c: "#88a", t: "$ same prompt" },
+      { c: "#bbb", t: "Editing auth.ts" },
+      { c: "#fff", t: "+ jwt import" },
+      { c: "#fff", t: "+ sign / verify" },
+    ],
+  },
+  {
+    color: "#F472B6",
+    name: "grok",
+    lines: [
+      { c: "#88a", t: "$ same prompt" },
+      { c: "#bbb", t: "Building diff…" },
+      { c: "#fff", t: "see auth.ts:42" },
+    ],
+  },
+  {
+    color: "#F1FA8C",
+    name: "aider",
+    lines: [
+      { c: "#88a", t: "$ same prompt" },
+      { c: "#bbb", t: "Applying edits." },
+      { c: "#bbb", t: "1 file changed." },
+      { c: "#fff", t: "commit: 'jwt auth'" },
+    ],
+  },
+];
+
+// One tick = 50ms; 240 ticks = 12s full cycle. Phase boundaries are picked
+// so the typing reads at a natural speed, the broadcast pulse is short,
+// and the streaming phase has room for all 6 agents to stagger in.
+const TICK_MS = 50;
+const TICKS_PER_CYCLE = 240;
+const PHASE_IDLE_END = 14;       // 0.7s blank
+const PHASE_TYPING_END = 60;     // ~2.3s typing (one char per ~50ms)
+const PHASE_SENDING_END = 70;    // 0.5s send pulse
+const PHASE_STREAMING_END = 205; // 6.75s streaming (panes fill in stagger)
+// remainder = ~1.75s hold + reset
+
 function BrowserMockup() {
+  const [tick, setTick] = useState(0);
+  useEffect(() => {
+    const id = window.setInterval(
+      () => setTick((t) => (t + 1) % TICKS_PER_CYCLE),
+      TICK_MS,
+    );
+    return () => window.clearInterval(id);
+  }, []);
+
+  const phase =
+    tick < PHASE_IDLE_END
+      ? "idle"
+      : tick < PHASE_TYPING_END
+        ? "typing"
+        : tick < PHASE_SENDING_END
+          ? "sending"
+          : tick < PHASE_STREAMING_END
+            ? "streaming"
+            : "done";
+
+  // Broadcast-bar prompt is revealed char-by-char during the typing phase.
+  const promptChars =
+    phase === "idle"
+      ? 0
+      : phase === "typing"
+        ? Math.min(DEMO_PROMPT.length, tick - PHASE_IDLE_END)
+        : DEMO_PROMPT.length;
+  const promptText = DEMO_PROMPT.slice(0, promptChars);
+  const showCaret = phase === "typing" && tick % 12 < 6;
+
+  // Per-pane line count: 0 until streaming starts, then one line every
+  // ~300ms (6 ticks) with a 5-tick stagger between agents so the eye can
+  // follow the cascade instead of being hit by 24 lines at once.
+  const linesFor = (idx: number, totalLines: number): number => {
+    if (phase === "done") return totalLines;
+    if (phase !== "streaming") return 0;
+    const streamTick = tick - PHASE_STREAMING_END + (PHASE_STREAMING_END - PHASE_SENDING_END) - idx * 5;
+    if (streamTick < 0) return 0;
+    return Math.min(totalLines, Math.floor(streamTick / 6) + 1);
+  };
+
+  // Attention glow ripples across all panes during sending + early
+  // streaming so the user sees "the prompt fanned out to all 6."
+  const attentionFor = (idx: number): boolean => {
+    if (phase === "sending") return true;
+    if (phase === "streaming" && tick - PHASE_SENDING_END < idx * 5 + 16) return true;
+    return false;
+  };
+
+  const sendPulse = phase === "sending";
+
   return (
     <div
-      className="relative w-full"
+      className="relative w-full aspect-[3/4] sm:aspect-[5/4] lg:aspect-[16/10]"
       style={{
-        maxWidth: 560,
-        aspectRatio: "16 / 11",
-        borderRadius: 12,
+        maxWidth: 820,
+        borderRadius: 14,
         background: "linear-gradient(180deg,#141414,#0a0a0a)",
         boxShadow:
-          "0 32px 80px rgba(255,69,0,0.10), 0 0 0 1px rgba(255,255,255,0.06), inset 0 0 0 1px rgba(255,255,255,0.04)",
+          "0 40px 100px rgba(255,69,0,0.14), 0 0 0 1px rgba(255,255,255,0.06), inset 0 0 0 1px rgba(255,255,255,0.04)",
       }}
+      data-testid="hero-demo"
     >
       {/* Title bar */}
       <div
@@ -1120,72 +1263,54 @@ function BrowserMockup() {
         <BrandMark size={14} />
       </div>
 
-      {/* Canvas area */}
+      {/* Canvas area — 2 cols × 3 rows on mobile (taller, easier to read);
+          flips to 3 cols × 2 rows on desktop. */}
       <div
-        className="absolute inset-x-0 bottom-0 grid grid-cols-3 gap-2 p-3"
+        className="absolute inset-x-0 grid grid-cols-2 grid-rows-3 sm:grid-cols-3 sm:grid-rows-2 gap-1.5 p-3"
         style={{
           top: 32,
+          bottom: 56,
           backgroundImage:
             "radial-gradient(circle at 1px 1px, rgba(255,255,255,0.05) 1px, transparent 0)",
           backgroundSize: "16px 16px",
-          paddingBottom: 48,
         }}
       >
-        <MockPane
-          color="#FF9F4A"
-          name="claude"
-          lines={[
-            { c: "#FF9F4A", t: "● claude-code" },
-            { c: "#88a", t: "$ analyze auth" },
-            { c: "#bbb", t: "Reading src/auth/*" },
-            { c: "#bbb", t: "3 entry points." },
-            { c: "#fff", t: "Plan: extract JWT" },
-            { c: "#fff", t: "middleware → shared/" },
-          ]}
-          attention
-          badge
-        />
-        <MockPane
-          color="#A5C9FF"
-          name="codex"
-          lines={[
-            { c: "#A5C9FF", t: "● codex" },
-            { c: "#88a", t: "$ same prompt" },
-            { c: "#bbb", t: "Will refactor" },
-            { c: "#bbb", t: "in-place." },
-            { c: "#bbb", t: "Creating PR..." },
-          ]}
-        />
-        <MockPane
-          color="#74E0BB"
-          name="gemini"
-          lines={[
-            { c: "#74E0BB", t: "● gemini" },
-            { c: "#88a", t: "$ same prompt" },
-            { c: "#bbb", t: "Suggests middleware" },
-            { c: "#bbb", t: "factory pattern…" },
-          ]}
-        />
+        {DEMO_AGENTS.map((a, i) => (
+          <MockPane
+            key={a.name}
+            color={a.color}
+            name={a.name}
+            lines={a.lines.slice(0, linesFor(i, a.lines.length))}
+            attention={attentionFor(i)}
+          />
+        ))}
       </div>
 
       {/* Broadcast bar */}
       <div
-        className="absolute inset-x-3 bottom-3 rounded-lg p-2.5 flex items-center gap-2"
+        className="absolute inset-x-3 bottom-3 rounded-lg p-2.5 flex items-center gap-2 transition-shadow duration-300"
         style={{
           background: "rgba(20,20,20,0.95)",
-          border: `1px solid ${ORANGE}55`,
+          border: `1px solid ${sendPulse ? ORANGE : `${ORANGE}55`}`,
+          boxShadow: sendPulse ? `0 0 28px ${ORANGE}66` : "none",
           backdropFilter: "blur(8px)",
         }}
       >
         <Radio size={12} style={{ color: ORANGE }} className="shrink-0" />
-        <div className="flex-1 text-[11px] font-mono text-white/70 truncate">
-          refactor auth.ts to use jwt
+        <div className="flex-1 text-[11px] font-mono text-white/85 truncate min-h-[1.1em]">
+          {promptText}
+          {showCaret && <span style={{ color: ORANGE }}>▍</span>}
         </div>
         <span
-          className="px-1.5 py-0.5 text-[9.5px] font-mono"
-          style={{ color: ORANGE, border: `1px solid ${ORANGE}50` }}
+          className="px-1.5 py-0.5 text-[9.5px] font-mono transition-opacity duration-200"
+          style={{
+            color: ORANGE,
+            border: `1px solid ${ORANGE}${sendPulse ? "" : "50"}`,
+            background: sendPulse ? `${ORANGE}22` : "transparent",
+            opacity: phase === "idle" ? 0.4 : 1,
+          }}
         >
-          send 3
+          send 6
         </span>
       </div>
     </div>
@@ -1197,22 +1322,20 @@ function MockPane({
   name,
   lines,
   attention,
-  badge,
 }: {
   color: string;
   name: string;
   lines: { c: string; t: string }[];
   attention?: boolean;
-  badge?: boolean;
 }) {
   return (
     <div
-      className="relative flex flex-col min-w-0"
+      className="relative flex flex-col min-w-0 transition-all duration-200"
       style={{
         background: "#0a0a0a",
-        border: `1px solid ${attention ? `${color}55` : "rgba(255,255,255,0.07)"}`,
+        border: `1px solid ${attention ? `${color}66` : "rgba(255,255,255,0.07)"}`,
         borderLeft: `2px solid ${color}`,
-        boxShadow: attention ? `0 0 24px ${color}33` : "none",
+        boxShadow: attention ? `0 0 18px ${color}44` : "none",
       }}
     >
       <div
@@ -1222,7 +1345,7 @@ function MockPane({
         <span className="font-mono text-[10px] font-bold truncate" style={{ color }}>
           {name}
         </span>
-        {badge && (
+        {attention && (
           <span
             className="ml-auto text-[8px] font-mono px-1 animate-pulse"
             style={{ color, background: `${color}1a` }}
@@ -1231,9 +1354,13 @@ function MockPane({
           </span>
         )}
       </div>
-      <div className="px-2 py-1.5 font-mono text-[9.5px] leading-[1.45] overflow-hidden">
+      <div className="px-2 py-1.5 font-mono text-[9.5px] leading-[1.45] overflow-hidden flex-1">
         {lines.map((l, i) => (
-          <div key={i} style={{ color: l.c }} className="truncate">
+          <div
+            key={i}
+            style={{ color: l.c, animation: "ogFadeIn 250ms ease-out" }}
+            className="truncate"
+          >
             {l.t}
           </div>
         ))}

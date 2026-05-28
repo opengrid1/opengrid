@@ -153,3 +153,11 @@ html {
 [class*="react-resizable-handle"] {
   touch-action: none;
 }
+
+/* Hero demo line-in animation — pane output appears with a subtle fade-up
+   rather than popping in. Subtle on purpose; the demo's main motion comes
+   from the staggered timing, not per-line transitions. */
+@keyframes ogFadeIn {
+  from { opacity: 0; transform: translateY(2px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
