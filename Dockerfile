@@ -32,7 +32,6 @@ COPY .npmrc ./
 COPY lib/api-spec/package.json           lib/api-spec/
 COPY lib/api-zod/package.json            lib/api-zod/
 COPY lib/api-client-react/package.json   lib/api-client-react/
-COPY lib/db/package.json                 lib/db/
 COPY artifacts/api-server/package.json   artifacts/api-server/
 COPY artifacts/opengrid-canvas/package.json artifacts/opengrid-canvas/
 COPY scripts/package.json                scripts/

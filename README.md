@@ -28,10 +28,16 @@ Open Grid is a single-binary, self-hostable workspace that gives every browser t
 
 ```bash
 git clone https://github.com/fleet-watcher/opengrid.git && cd opengrid
-./scripts/install.sh            # checks node/pnpm, generates SESSION_SECRET into .env.local
-PORT=4000 pnpm --filter @workspace/api-server  run dev   # API + WS
-PORT=5173 pnpm --filter @workspace/opengrid-canvas run dev  # web canvas
+./scripts/install.sh   # checks node/pnpm, generates SESSION_SECRET into .env.local
+pnpm dev               # API on :4000, web canvas on :5173
 # open http://localhost:5173
+```
+
+Or run each service yourself if you prefer separate terminals:
+
+```bash
+PORT=4000 pnpm --filter @workspace/api-server      run dev   # API + WS
+PORT=5173 pnpm --filter @workspace/opengrid-canvas run dev   # web canvas
 ```
 
 Requirements: **Node ≥ 20**, **pnpm ≥ 9**, **git**. To actually spawn agents, install the CLIs you want and make sure they're on `$PATH`:
@@ -118,12 +124,10 @@ Found a security issue? See [SECURITY.md](./SECURITY.md).
 artifacts/
   opengrid-canvas/   React + Vite SPA — the canvas UI
   api-server/     Express 5 + ws + node-pty — sessions, files, PTYs
-  mockup-sandbox/ Internal design playground (optional)
 lib/
   api-spec/       OpenAPI source of truth (codegen target)
   api-zod/        Generated Zod schemas
   api-client-react/  Generated React Query hooks
-  db/             Drizzle ORM schema (reserved for future persistence)
 ```
 
 In dev the SPA runs under Vite on its own port and talks to the API at `/api/*` via the workspace proxy. In prod the API server can serve the prebuilt SPA from the same port (`SERVE_WEB=1`), and that's what the Docker image does.
@@ -132,11 +136,12 @@ In dev the SPA runs under Vite on its own port and talks to the API at `/api/*` 
 
 | Command | Purpose |
 | ------- | ------- |
+| `pnpm dev` | Start API (:4000) + web canvas (:5173) together. |
 | `pnpm run typecheck` | Full typecheck (libs + leaf packages). Canonical truth. |
 | `pnpm run build` | Typecheck + build all packages. |
 | `pnpm --filter @workspace/api-spec run codegen` | Regenerate Zod + React Query hooks from `lib/api-spec/openapi.yaml`. |
-| `pnpm --filter @workspace/api-server run dev` | Build + start the API. |
-| `pnpm --filter @workspace/opengrid-canvas run dev` | Vite dev server for the UI. |
+| `pnpm --filter @workspace/api-server run dev` | Build + start the API by itself. |
+| `pnpm --filter @workspace/opengrid-canvas run dev` | Vite dev server for the UI by itself. |
 
 ## Roadmap
 
