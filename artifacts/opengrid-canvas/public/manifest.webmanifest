@@ -7,20 +7,12 @@
   "display": "standalone",
   "orientation": "any",
   "background_color": "#000000",
-  "theme_color": "#FF3C00",
+  "theme_color": "#FF4500",
   "categories": ["developer", "productivity", "utilities"],
   "icons": [
-    {
-      "src": "/favicon.svg",
-      "type": "image/svg+xml",
-      "sizes": "any",
-      "purpose": "any"
-    },
-    {
-      "src": "/favicon.svg",
-      "type": "image/svg+xml",
-      "sizes": "any",
-      "purpose": "maskable"
-    }
+    { "src": "/favicon.svg",         "type": "image/svg+xml", "sizes": "any",     "purpose": "any" },
+    { "src": "/apple-touch-icon.png","type": "image/png",     "sizes": "180x180", "purpose": "any" },
+    { "src": "/icon-512.png",        "type": "image/png",     "sizes": "512x512", "purpose": "any" },
+    { "src": "/icon-512.png",        "type": "image/png",     "sizes": "512x512", "purpose": "maskable" }
   ]
 }

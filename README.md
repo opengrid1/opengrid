@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="./artifacts/opengrid-canvas/public/opengraph.png" alt="Open Grid — Every coding agent. One canvas." width="900" />
+
 # Open Grid
 
 **A multi-pane terminal canvas for AI coding agents — from any browser, including your phone.**

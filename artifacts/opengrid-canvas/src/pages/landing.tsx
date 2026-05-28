@@ -896,18 +896,38 @@ export default function Landing() {
 }
 
 /* ─────────────────────────────────────────
-   Brand mark — bracket-G monogram
+   Brand mark — bracket-OG monogram (SVG)
 ───────────────────────────────────────── */
 function BrandMark({ size = 28 }: { size?: number }) {
-  const fs = Math.round(size * 0.5);
   return (
-    <div
-      className="flex items-center justify-center text-black font-black select-none"
-      style={{ width: size, height: size, background: ORANGE, fontSize: fs, fontFamily: "ui-monospace, monospace" }}
-      aria-hidden
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 180 180"
+      role="img"
+      aria-label="Open Grid"
+      className="select-none"
     >
-      OG
-    </div>
+      <rect width="180" height="180" rx={Math.round(180 * 0.2)} fill={ORANGE} />
+      <g stroke="#000" strokeWidth="10" strokeLinecap="square" fill="none">
+        <path d="M28 46 L28 28 L46 28" />
+        <path d="M152 28 L170 28 L170 46" />
+        <path d="M28 134 L28 152 L46 152" />
+        <path d="M152 152 L170 152 L170 134" />
+      </g>
+      <text
+        x="90"
+        y="122"
+        fill="#000"
+        fontFamily="ui-monospace, 'JetBrains Mono', 'SF Mono', Menlo, monospace"
+        fontWeight={900}
+        fontSize={96}
+        letterSpacing={-4}
+        textAnchor="middle"
+      >
+        OG
+      </text>
+    </svg>
   );
 }
 

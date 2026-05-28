@@ -1,3 +1,14 @@
-<svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
-<rect width="180" height="180" rx="36" fill="#FF3C00"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180" width="180" height="180" role="img" aria-label="Open Grid">
+  <rect width="180" height="180" rx="36" fill="#FF4500"/>
+  <!-- bracket-O+G mark, heavy mono, optical-balanced for 16px favicon -->
+  <g fill="#000" font-family="ui-monospace, 'JetBrains Mono', 'SF Mono', Menlo, monospace" font-weight="900" font-size="96" text-anchor="middle">
+    <text x="90" y="122" letter-spacing="-4">OG</text>
+  </g>
+  <!-- bracket accents (CLI vibe) -->
+  <g stroke="#000" stroke-width="10" stroke-linecap="square" fill="none">
+    <path d="M28 46 L28 28 L46 28"/>
+    <path d="M152 28 L170 28 L170 46"/>
+    <path d="M28 134 L28 152 L46 152"/>
+    <path d="M152 152 L170 152 L170 134"/>
+  </g>
 </svg>
