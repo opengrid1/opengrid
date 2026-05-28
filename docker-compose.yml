@@ -8,7 +8,7 @@
 services:
   opengrid:
     build: .
-    # image: ghcr.io/fleet-watcher/opengrid:latest    # uncomment to pin a tag
+    # image: ghcr.io/opengrid1/opengrid:latest    # uncomment to pin a tag
     container_name: opengrid
     restart: unless-stopped
     ports:

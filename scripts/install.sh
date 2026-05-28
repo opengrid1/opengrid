@@ -17,7 +17,7 @@
 
 set -euo pipefail
 
-REPO_URL="${OPENGRID_REPO:-https://github.com/fleet-watcher/opengrid.git}"
+REPO_URL="${OPENGRID_REPO:-https://github.com/opengrid1/opengrid.git}"
 TARGET_DIR="${OPENGRID_DIR:-opengrid}"
 
 bold()  { printf "\033[1m%s\033[0m\n" "$*"; }

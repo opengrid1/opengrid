@@ -1,8 +1,8 @@
 blank_issues_enabled: false
 contact_links:
   - name: Question or discussion
-    url: https://github.com/fleet-watcher/opengrid/discussions
+    url: https://github.com/opengrid1/opengrid/discussions
     about: For questions, setup help, or open-ended discussion, please use Discussions.
   - name: Security vulnerability
-    url: https://github.com/fleet-watcher/opengrid/blob/main/SECURITY.md
+    url: https://github.com/opengrid1/opengrid/blob/main/SECURITY.md
     about: Please report security issues privately — see SECURITY.md.

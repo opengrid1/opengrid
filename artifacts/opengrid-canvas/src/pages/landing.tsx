@@ -29,7 +29,7 @@ import {
 } from "lucide-react";
 
 const ORANGE = "#FF4500";
-const REPO_URL = "https://github.com/fleet-watcher/opengrid";
+const REPO_URL = "https://github.com/opengrid1/opengrid";
 
 // CLI agents Open Grid actually spawns over PTY (server-side registry in
 // lib/terminal.ts). Keep this list in sync with AGENT_REGISTRY.
@@ -240,21 +240,21 @@ export default function Landing() {
           <div className="flex items-center gap-2 flex-wrap pt-1">
             <a href={REPO_URL} target="_blank" rel="noreferrer" data-testid="badge-stars" aria-label="GitHub stars">
               <img
-                src="https://img.shields.io/github/stars/fleet-watcher/opengrid?style=flat-square&label=stars&color=FF4500&labelColor=0a0a0a"
+                src="https://img.shields.io/github/stars/opengrid1/opengrid?style=flat-square&label=stars&color=FF4500&labelColor=0a0a0a"
                 alt="GitHub stars"
                 height={20}
               />
             </a>
             <a href={`${REPO_URL}/blob/main/LICENSE`} target="_blank" rel="noreferrer" data-testid="badge-license" aria-label="MIT license">
               <img
-                src="https://img.shields.io/github/license/fleet-watcher/opengrid?style=flat-square&color=white&labelColor=0a0a0a"
+                src="https://img.shields.io/github/license/opengrid1/opengrid?style=flat-square&color=white&labelColor=0a0a0a"
                 alt="MIT license"
                 height={20}
               />
             </a>
             <a href={`${REPO_URL}/commits/main`} target="_blank" rel="noreferrer" data-testid="badge-commit" aria-label="Last commit">
               <img
-                src="https://img.shields.io/github/last-commit/fleet-watcher/opengrid?style=flat-square&label=last%20commit&color=white&labelColor=0a0a0a"
+                src="https://img.shields.io/github/last-commit/opengrid1/opengrid?style=flat-square&label=last%20commit&color=white&labelColor=0a0a0a"
                 alt="Last commit"
                 height={20}
               />
@@ -783,7 +783,7 @@ export default function Landing() {
                 </li>
                 <li>
                   <a
-                    href="https://github.com/sponsors/fleet-watcher"
+                    href="https://github.com/sponsors/opengrid1"
                     target="_blank"
                     rel="noreferrer"
                     className="hover:text-white transition-colors"
@@ -1175,7 +1175,7 @@ function SelfHostSection() {
           </p>
           <CopyBlock
             testId="copy-install-script"
-            code={`curl -fsSL https://raw.githubusercontent.com/fleet-watcher/opengrid/main/scripts/install.sh | bash`}
+            code={`curl -fsSL https://raw.githubusercontent.com/opengrid1/opengrid/main/scripts/install.sh | bash`}
           />
           <p className="text-white/30 text-[11.5px] font-mono">
             ⌥ Don't trust pipes-to-bash? <span className="text-white/55">Read the script first</span> — it's 80 lines.
@@ -1223,7 +1223,7 @@ function SelfHostSection() {
           <CopyBlock
             testId="copy-install-manual"
             code={`# 1. Clone
-git clone https://github.com/fleet-watcher/opengrid.git
+git clone https://github.com/opengrid1/opengrid.git
 cd opengrid
 
 # 2. Install
@@ -1647,7 +1647,7 @@ function PricingCallout() {
             Read the license
           </a>
           <a
-            href="https://github.com/sponsors/fleet-watcher"
+            href="https://github.com/sponsors/opengrid1"
             target="_blank"
             rel="noreferrer"
             className="text-[12px] font-mono text-white/40 hover:text-white/70 transition-colors lg:text-right"

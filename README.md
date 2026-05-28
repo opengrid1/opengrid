@@ -27,7 +27,7 @@ Open Grid is a single-binary, self-hostable workspace that gives every browser t
 ## Quick start
 
 ```bash
-git clone https://github.com/fleet-watcher/opengrid.git && cd opengrid
+git clone https://github.com/opengrid1/opengrid.git && cd opengrid
 ./scripts/install.sh   # checks node/pnpm, generates SESSION_SECRET into .env.local
 pnpm dev               # API on :4000, web canvas on :5173
 # open http://localhost:5173
@@ -60,7 +60,7 @@ docker run -d --name opengrid \
   -e SESSION_SECRET="$(openssl rand -hex 32)" \
   -e ALLOWED_ORIGINS="https://opengrid.example.com" \
   -v opengrid-workspaces:/var/lib/opengrid \
-  ghcr.io/fleet-watcher/opengrid:latest
+  ghcr.io/opengrid1/opengrid:latest
 ```
 
 Or with `docker-compose.yml`:
