@@ -97,7 +97,6 @@ const REPO_URL = "https://github.com/opengrid1/opengrid";
 // hunting through replies or screenshots.
 const OG_TOKEN_ADDRESS = "0x18fb571c84483a9875b37f499d925dce9827dba3";
 const OG_TOKEN_URL = `https://basescan.org/token/${OG_TOKEN_ADDRESS}`;
-const truncateAddress = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`;
 
 // Three small inline pills: stars / MIT / last commit. All clickable, all
 // render immediately (no external image dependency), and resolve to live
@@ -158,7 +157,7 @@ function RepoBadges() {
       >
         <Coins size={11} className="opacity-70" style={{ color: ORANGE }} />
         <span>$OG</span>
-        <span className="text-white/40">{truncateAddress(OG_TOKEN_ADDRESS)}</span>
+        <span className="text-white/40 break-all">{OG_TOKEN_ADDRESS}</span>
       </a>
     </div>
   );
