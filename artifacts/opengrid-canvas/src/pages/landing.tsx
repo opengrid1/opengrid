@@ -224,7 +224,7 @@ export default function Landing() {
             </a>
           </div>
 
-          <div className="flex items-center gap-3 text-[11px] font-mono text-white/55 pt-2">
+          <div className="flex items-center gap-x-3 gap-y-1.5 flex-wrap text-[11px] font-mono text-white/55 pt-2">
             <span className="flex items-center gap-1.5">
               <Globe size={12} /> Works in any browser
             </span>
@@ -906,7 +906,7 @@ function BrandMark({ size = 28 }: { size?: number }) {
       style={{ width: size, height: size, background: ORANGE, fontSize: fs, fontFamily: "ui-monospace, monospace" }}
       aria-hidden
     >
-      AG
+      OG
     </div>
   );
 }
@@ -1331,17 +1331,23 @@ function FaqItem({
         onClick={onToggle}
         className="w-full flex items-center justify-between py-5 text-left group"
         data-testid={`faq-${index}`}
+        aria-expanded={open}
+        aria-controls={`faq-panel-${index}`}
+        id={`faq-trigger-${index}`}
       >
         <span className="font-mono text-[14px] sm:text-[15px] font-semibold text-white/80 group-hover:text-white transition-colors pr-6">
           {q}
         </span>
-        <span className="text-white/25 shrink-0">
+        <span className="text-white/25 shrink-0" aria-hidden>
           {open ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
         </span>
       </button>
       <AnimatePresence initial={false}>
         {open && (
           <motion.div
+            id={`faq-panel-${index}`}
+            role="region"
+            aria-labelledby={`faq-trigger-${index}`}
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
