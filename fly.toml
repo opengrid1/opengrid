@@ -1,0 +1,50 @@
+# Open Grid — Fly.io deployment config.
+#
+# Quick start (after `fly launch --no-deploy` or copying this file):
+#   fly volume create opengrid_data --region sin --size 3
+#   fly secrets set SESSION_SECRET=$(openssl rand -hex 32)
+#   fly secrets set ALLOWED_ORIGINS="https://opengrid1.fly.dev"
+#   fly deploy
+#
+# Pick a region close to you (sin=Singapore, hkg=Hong Kong, nrt=Tokyo,
+# sjc=San Jose, iad=Virginia, ams=Amsterdam). `fly platform regions`
+# to see all.
+
+app = "opengrid1"
+primary_region = "sin"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  NODE_ENV = "production"
+  PORT = "8080"
+  WORKSPACES_ROOT = "/var/lib/opengrid"
+  MAX_SESSIONS = "32"
+  MAX_USER_SESSIONS = "200"
+
+[[mounts]]
+  source = "opengrid_data"
+  destination = "/var/lib/opengrid"
+  initial_size = "3gb"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ["app"]
+
+  [http_service.concurrency]
+    type = "requests"
+    soft_limit = 80
+    hard_limit = 200
+
+[[vm]]
+  size = "shared-cpu-2x"
+  memory = "1gb"
+
+[[restart]]
+  policy = "on-failure"
+  retries = 5
