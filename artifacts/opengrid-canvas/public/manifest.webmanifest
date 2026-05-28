@@ -1,0 +1,26 @@
+{
+  "name": "Open Grid",
+  "short_name": "Open Grid",
+  "description": "A multi-pane terminal canvas for AI coding agents — from any browser.",
+  "start_url": "/canvas",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#000000",
+  "theme_color": "#FF3C00",
+  "categories": ["developer", "productivity", "utilities"],
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any",
+      "purpose": "maskable"
+    }
+  ]
+}
