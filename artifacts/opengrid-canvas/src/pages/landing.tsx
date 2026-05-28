@@ -80,7 +80,7 @@ export default function Landing() {
 
           <div className="flex items-center gap-3">
             <a
-              href="https://github.com"
+              href="https://github.com/fleet-watcher/opengrid"
               target="_blank"
               rel="noreferrer"
               className="text-white/40 hover:text-white transition-colors"
@@ -677,7 +677,7 @@ export default function Landing() {
                 </li>
                 <li>
                   <a
-                    href="https://github.com/sponsors/opengrid"
+                    href="https://github.com/sponsors/fleet-watcher"
                     target="_blank"
                     rel="noreferrer"
                     className="hover:text-white transition-colors"
@@ -1113,7 +1113,7 @@ PORT=5173 pnpm --filter @workspace/opengrid-canvas run dev`}
           Open Grid is meant to live on a box you can <span className="text-white/70">reach from anywhere</span> —
           your laptop is fine, but a homelab or VPS lets your phone, tablet, and other machines hit the same canvas.
           {" "}
-          <a href="https://github.com" target="_blank" rel="noreferrer" className="text-white/70 hover:text-white underline underline-offset-2 decoration-white/20 hover:decoration-white">
+          <a href="https://github.com/fleet-watcher/opengrid" target="_blank" rel="noreferrer" className="text-white/70 hover:text-white underline underline-offset-2 decoration-white/20 hover:decoration-white">
             View source on GitHub
           </a>.
         </p>
