@@ -45,6 +45,7 @@ interface ListResponse {
   parent: string | null;
   entries: Entry[];
   truncated: boolean;
+  root: string;
 }
 
 interface ReadResponse {
@@ -62,8 +63,6 @@ interface SearchResponse {
   visited: number;
   truncated: boolean;
 }
-
-const DEFAULT_PATH = '/home/runner/workspace';
 
 function formatSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
@@ -105,7 +104,8 @@ function getLangExtension(filename: string) {
 
 export function FilesTab({ panelId, initialPath }: FilesTabProps) {
   void panelId;
-  const [cwd, setCwd] = useState<string>(initialPath || DEFAULT_PATH);
+  const [cwd, setCwd] = useState<string>(initialPath || '');
+  const [root, setRoot] = useState<string>('');
   const [listing, setListing] = useState<ListResponse | null>(null);
   const [listError, setListError] = useState<string | null>(null);
   const [listLoading, setListLoading] = useState(false);
@@ -134,7 +134,11 @@ export function FilesTab({ panelId, initialPath }: FilesTabProps) {
     setListError(null);
     const reqId = ++requestId.current;
     try {
-      const r = await apiFetch(`/api/files/list?path=${encodeURIComponent(target)}`);
+      // No target => server defaults to this session's workspace root.
+      const url = target
+        ? `/api/files/list?path=${encodeURIComponent(target)}`
+        : `/api/files/list`;
+      const r = await apiFetch(url);
       const data = (await r.json()) as ListResponse | { error: string };
       if (reqId !== requestId.current) return;
       if (!r.ok || 'error' in data) {
@@ -143,6 +147,7 @@ export function FilesTab({ panelId, initialPath }: FilesTabProps) {
       } else {
         setListing(data);
         setCwd(data.path);
+        if (data.root) setRoot(data.root);
       }
     } catch (err) {
       if (reqId !== requestId.current) return;
@@ -239,7 +244,7 @@ export function FilesTab({ panelId, initialPath }: FilesTabProps) {
   const goUp = () => {
     if (listing?.parent) loadDir(listing.parent);
   };
-  const goHome = () => loadDir(DEFAULT_PATH);
+  const goHome = () => loadDir(root || '');
 
   const closeEditor = () => {
     if (dirty && !confirm('Discard unsaved changes?')) return;
@@ -468,7 +473,18 @@ export function FilesTab({ panelId, initialPath }: FilesTabProps) {
   }
 
   // ───────────────────────── Browser view ─────────────────────────
-  const segments = cwd === '/' ? [''] : cwd.split('/');
+  // Show breadcrumb relative to the session workspace root — never expose the
+  // host filesystem path (which contains the session id).
+  type Crumb = { label: string; target: string };
+  const crumbs: Crumb[] = [{ label: '~', target: root || '' }];
+  if (root && cwd && cwd !== root && cwd.startsWith(root + '/')) {
+    const rel = cwd.slice(root.length + 1).split('/');
+    let acc = root;
+    for (const seg of rel) {
+      acc = `${acc}/${seg}`;
+      crumbs.push({ label: seg, target: acc });
+    }
+  }
   return (
     <div className="flex flex-col h-full bg-black text-white">
       {/* Top nav bar */}
@@ -502,20 +518,17 @@ export function FilesTab({ panelId, initialPath }: FilesTabProps) {
           <RefreshCcw size={11} className={listLoading ? 'animate-spin' : ''} />
         </button>
         <div className="flex-1 min-w-0 overflow-x-auto whitespace-nowrap text-[11px] font-mono text-white/50 pl-1">
-          {segments.map((seg, i) => {
-            const partial = i === 0 ? '/' : segments.slice(0, i + 1).join('/');
-            return (
-              <span key={i} className="inline-flex items-center">
-                {i > 0 && <ChevronRight size={10} className="mx-0.5 text-white/20" />}
-                <button
-                  onClick={() => partial && loadDir(partial)}
-                  className="hover:text-white/90"
-                >
-                  {i === 0 ? '/' : seg}
-                </button>
-              </span>
-            );
-          })}
+          {crumbs.map((c, i) => (
+            <span key={i} className="inline-flex items-center">
+              {i > 0 && <ChevronRight size={10} className="mx-0.5 text-white/20" />}
+              <button
+                onClick={() => c.target && loadDir(c.target)}
+                className="hover:text-white/90"
+              >
+                {c.label}
+              </button>
+            </span>
+          ))}
         </div>
       </div>
 
