@@ -23,6 +23,9 @@ import {
   Check,
   Menu,
   X,
+  Smartphone,
+  Sparkles,
+  Scale,
 } from "lucide-react";
 
 const ORANGE = "#FF4500";
@@ -231,6 +234,31 @@ export default function Landing() {
             <span>BYO keys</span>
             <span className="text-white/10">·</span>
             <span>No telemetry</span>
+          </div>
+
+          {/* Live project signals — pulled from GitHub by shields.io */}
+          <div className="flex items-center gap-2 flex-wrap pt-1">
+            <a href={REPO_URL} target="_blank" rel="noreferrer" data-testid="badge-stars" aria-label="GitHub stars">
+              <img
+                src="https://img.shields.io/github/stars/fleet-watcher/opengrid?style=flat-square&label=stars&color=FF4500&labelColor=0a0a0a"
+                alt="GitHub stars"
+                height={20}
+              />
+            </a>
+            <a href={`${REPO_URL}/blob/main/LICENSE`} target="_blank" rel="noreferrer" data-testid="badge-license" aria-label="MIT license">
+              <img
+                src="https://img.shields.io/github/license/fleet-watcher/opengrid?style=flat-square&color=white&labelColor=0a0a0a"
+                alt="MIT license"
+                height={20}
+              />
+            </a>
+            <a href={`${REPO_URL}/commits/main`} target="_blank" rel="noreferrer" data-testid="badge-commit" aria-label="Last commit">
+              <img
+                src="https://img.shields.io/github/last-commit/fleet-watcher/opengrid?style=flat-square&label=last%20commit&color=white&labelColor=0a0a0a"
+                alt="Last commit"
+                height={20}
+              />
+            </a>
           </div>
         </motion.div>
 
@@ -524,8 +552,26 @@ export default function Landing() {
       {/* ── DIVIDER ── */}
       <div className="border-t border-white/[0.06]" />
 
+      {/* ── COMPARISON ── */}
+      <ComparisonSection />
+
+      {/* ── DIVIDER ── */}
+      <div className="border-t border-white/[0.06]" />
+
+      {/* ── MOBILE ── */}
+      <MobileSection />
+
+      {/* ── DIVIDER ── */}
+      <div className="border-t border-white/[0.06]" />
+
       {/* ── SELF-HOST / DOWNLOAD ── */}
       <SelfHostSection />
+
+      {/* ── DIVIDER ── */}
+      <div className="border-t border-white/[0.06]" />
+
+      {/* ── PRICING / LICENSE ── */}
+      <PricingCallout />
 
       {/* ── DIVIDER ── */}
       <div className="border-t border-white/[0.06]" />
@@ -802,8 +848,37 @@ export default function Landing() {
             </div>
           </div>
 
+          {/* Roadmap strip */}
+          <div className="mt-12 pt-6 border-t border-white/[0.04] flex flex-col sm:flex-row items-start gap-3 sm:gap-6">
+            <div className="flex items-center gap-2 shrink-0">
+              <Sparkles size={13} style={{ color: ORANGE }} />
+              <span className="text-[10.5px] font-mono uppercase tracking-[0.18em] text-white/40">
+                Roadmap
+              </span>
+            </div>
+            <div className="flex flex-wrap gap-x-4 gap-y-2 text-[11.5px] font-mono text-white/55">
+              <span>Docker image</span>
+              <span className="text-white/15">·</span>
+              <span>Saved layouts</span>
+              <span className="text-white/15">·</span>
+              <span>Shareable canvases</span>
+              <span className="text-white/15">·</span>
+              <span>Pane snapshots</span>
+              <span className="text-white/15">·</span>
+              <a
+                href={`${REPO_URL}/issues?q=is%3Aissue+label%3Aroadmap`}
+                target="_blank"
+                rel="noreferrer"
+                className="text-white/70 hover:text-white underline decoration-white/15 underline-offset-2"
+                data-testid="footer-roadmap"
+              >
+                Vote on the rest →
+              </a>
+            </div>
+          </div>
+
           {/* Bottom strip */}
-          <div className="mt-12 pt-6 border-t border-white/[0.04] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="mt-8 pt-6 border-t border-white/[0.04] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div className="text-[11px] font-mono text-white/25">
               © {new Date().getFullYear()} Open Grid contributors. Built in the open.
             </div>
@@ -1143,7 +1218,7 @@ function SelfHostSection() {
             <h3 className="font-mono font-bold text-[15px]">Or do it by hand</h3>
           </div>
           <p className="text-white/45 text-[13.5px] font-sans leading-relaxed max-w-2xl">
-            Four steps. Two terminals. Then open <span className="text-white/70 font-mono">localhost:5173</span>.
+            Four steps. Two terminals. Then open the canvas at <span className="text-white/70 font-mono">localhost:&lt;PORT&gt;</span> — any free port works.
           </p>
           <CopyBlock
             testId="copy-install-manual"
@@ -1218,6 +1293,18 @@ const FAQ_ITEMS = [
     q: "Is it really self-hosted?",
     a: "That's the only way to run it. MIT licensed, no SaaS, no telemetry. Set SESSION_SECRET, WORKSPACES_ROOT, ALLOWED_ORIGINS and stick it behind your reverse proxy.",
   },
+  {
+    q: "Is it free? What's the catch?",
+    a: "Free, forever, MIT licensed. There's no paid tier, no usage caps, and no hosted SaaS to upsell you onto. You pay for the box you run it on (a $5 VPS is plenty for one person) and the API credits you'd already be paying your model providers. We don't see your prompts, your code, or your keys.",
+  },
+  {
+    q: "Why not just use tmux or multiple terminal tabs?",
+    a: "tmux is great if you live on one machine and don't need a UI. Open Grid adds three things tmux can't: a broadcast bar that fans one prompt out to every pane at once, an attention spotlight that flags which agents are waiting on you, and a browser-based canvas that follows you from laptop to phone — same session, same workspace, same in-flight PTYs.",
+  },
+  {
+    q: "Does it work on a phone?",
+    a: "Yes. The canvas is responsive and there's a floating key-bar that surfaces ESC, Tab, Ctrl, arrows, and Enter — the keys touch keyboards usually hide. Long-running agents keep working when you switch apps, and reconnect-with-replay means closing Safari to take a call doesn't lose context.",
+  },
 ];
 
 function FaqItem({
@@ -1268,5 +1355,302 @@ function FaqItem({
         )}
       </AnimatePresence>
     </motion.div>
+  );
+}
+
+/* ─────────────────────────────────────────
+   Why not tmux? — comparison
+───────────────────────────────────────── */
+function ComparisonSection() {
+  type Row = { label: string; tmux: string | boolean; tabs: string | boolean; og: string | boolean };
+  const ROWS: Row[] = [
+    { label: "Runs every CLI in its own pane",     tmux: true,  tabs: true,           og: true },
+    { label: "Broadcast one prompt to N agents",   tmux: false, tabs: false,          og: true },
+    { label: "Spotlights panes waiting on you",    tmux: false, tabs: false,          og: true },
+    { label: "Shared workspace dir across panes",  tmux: true,  tabs: "per-tab cwd",  og: true },
+    { label: "Survives disconnects (PTY on server)", tmux: true, tabs: false,         og: true },
+    { label: "Works from a phone browser",         tmux: false, tabs: false,          og: true },
+    { label: "Drag-to-arrange + layout presets",   tmux: "manual splits", tabs: false, og: true },
+    { label: "BYO-key manager (in-RAM, per-session)", tmux: false, tabs: false,       og: true },
+  ];
+  const renderCell = (v: string | boolean) => {
+    if (v === true) {
+      return <Check size={14} style={{ color: ORANGE }} />;
+    }
+    if (v === false) {
+      return <span className="text-white/20 font-mono text-[13px]">—</span>;
+    }
+    return <span className="font-mono text-[11px] text-white/55">{v}</span>;
+  };
+  return (
+    <section className="py-24 px-5 sm:px-6 max-w-7xl mx-auto">
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.5 }}
+        className="mb-12"
+      >
+        <p className="text-[11px] font-mono uppercase tracking-widest text-white/30 mb-3">vs. the alternatives</p>
+        <h2 className="text-[clamp(2rem,4vw,3.5rem)] font-black font-mono tracking-tighter leading-tight">
+          Why not just <span className="text-white/40">open tmux?</span>
+        </h2>
+        <p className="text-[15px] text-white/50 mt-4 max-w-xl font-sans">
+          tmux is great. Six browser tabs work in a pinch. Open Grid is the layer on top
+          when you want one prompt, many agents, from any device.
+        </p>
+      </motion.div>
+
+      <div className="border border-white/[0.06] overflow-x-auto">
+        <table className="w-full text-left border-collapse min-w-[640px]">
+          <thead>
+            <tr className="border-b border-white/[0.06] bg-white/[0.015]">
+              <th className="text-[11px] font-mono uppercase tracking-widest text-white/30 px-5 py-4 font-normal">
+                Capability
+              </th>
+              <th className="text-[12px] font-mono font-bold text-white/55 px-4 py-4 text-center w-[20%]">
+                tmux / screen
+              </th>
+              <th className="text-[12px] font-mono font-bold text-white/55 px-4 py-4 text-center w-[20%]">
+                6 browser tabs
+              </th>
+              <th
+                className="text-[12px] font-mono font-bold px-4 py-4 text-center w-[22%]"
+                style={{ color: ORANGE, background: `${ORANGE}08` }}
+              >
+                Open Grid
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {ROWS.map((r, i) => (
+              <tr
+                key={r.label}
+                className="border-b border-white/[0.04] last:border-b-0"
+                data-testid={`compare-row-${i}`}
+              >
+                <td className="px-5 py-3.5 text-[13px] font-sans text-white/75">{r.label}</td>
+                <td className="px-4 py-3.5 text-center">{renderCell(r.tmux)}</td>
+                <td className="px-4 py-3.5 text-center">{renderCell(r.tabs)}</td>
+                <td className="px-4 py-3.5 text-center" style={{ background: `${ORANGE}05` }}>
+                  {renderCell(r.og)}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
+}
+
+/* ─────────────────────────────────────────
+   From your phone
+───────────────────────────────────────── */
+function MobileSection() {
+  return (
+    <section className="py-24 px-5 sm:px-6 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] items-center gap-14">
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.5 }}
+        className="flex flex-col gap-5"
+      >
+        <div
+          className="inline-flex items-center gap-2 self-start px-3 py-1 text-[11px] font-mono uppercase tracking-widest"
+          style={{ border: `1px solid ${ORANGE}33`, color: ORANGE }}
+        >
+          <Smartphone size={11} />
+          From your phone
+        </div>
+        <h2 className="text-[clamp(2rem,4vw,3.5rem)] font-black font-mono tracking-tighter leading-tight">
+          Code from the<br />
+          <span style={{ color: ORANGE }}>back of an Uber.</span>
+        </h2>
+        <p className="text-[15px] text-white/55 leading-relaxed max-w-md font-sans">
+          The canvas is responsive, gestures work, and a floating key-bar surfaces the
+          keys touch keyboards hide — ESC, Tab, Ctrl, arrows, Enter. Switch apps to
+          take a call: PTYs keep running, reconnect replays the last 256KB.
+        </p>
+        <ul className="font-mono text-[12.5px] text-white/55 space-y-2 pt-1">
+          <li className="flex items-start gap-2.5">
+            <Check size={13} style={{ color: ORANGE }} className="mt-0.5 shrink-0" />
+            Same cookie session as your laptop — same workspace, same in-flight agents
+          </li>
+          <li className="flex items-start gap-2.5">
+            <Check size={13} style={{ color: ORANGE }} className="mt-0.5 shrink-0" />
+            Long-press &amp; native paste for multi-line prompts (bracketed paste, no auto-send)
+          </li>
+          <li className="flex items-start gap-2.5">
+            <Check size={13} style={{ color: ORANGE }} className="mt-0.5 shrink-0" />
+            iOS &amp; Android Safari / Chrome — no app store, no install, no permissions
+          </li>
+        </ul>
+      </motion.div>
+
+      {/* Phone mockup */}
+      <motion.div
+        initial={{ opacity: 0, y: 24 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6, delay: 0.1 }}
+        className="flex justify-center"
+      >
+        <div
+          className="relative w-[260px] h-[520px] rounded-[42px] p-3"
+          style={{
+            background: "#111",
+            border: "1px solid rgba(255,255,255,0.08)",
+            boxShadow: "0 30px 60px -20px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.04) inset",
+          }}
+        >
+          {/* Notch */}
+          <div
+            className="absolute top-3 left-1/2 -translate-x-1/2 w-24 h-5 rounded-b-2xl"
+            style={{ background: "#000", zIndex: 2 }}
+          />
+          {/* Screen */}
+          <div
+            className="relative w-full h-full rounded-[32px] overflow-hidden flex flex-col"
+            style={{ background: "#000" }}
+          >
+            {/* Status bar */}
+            <div className="flex items-center justify-between px-5 pt-3 pb-2 text-[10px] font-mono text-white/70">
+              <span>9:41</span>
+              <span className="text-white/40">●●●●● 5G</span>
+            </div>
+            {/* Mini canvas */}
+            <div className="flex-1 px-3 pt-1 pb-2 flex flex-col gap-2">
+              <div className="text-[8.5px] font-mono text-white/30 px-1 flex items-center gap-1">
+                <span style={{ color: ORANGE }}>◐</span>
+                <span>opengrid.example.com</span>
+              </div>
+              {/* 2x2 mini panes */}
+              <div className="grid grid-cols-2 gap-1.5 flex-1">
+                {AGENTS.slice(0, 4).map((a, i) => (
+                  <div
+                    key={a.name}
+                    className="border bg-[#0a0a0a] p-1.5 flex flex-col gap-0.5 overflow-hidden"
+                    style={{
+                      borderColor: i === 1 ? `${ORANGE}66` : "rgba(255,255,255,0.06)",
+                      boxShadow: i === 1 ? `0 0 10px ${ORANGE}22` : "none",
+                    }}
+                  >
+                    <span className="font-mono text-[8px] font-bold truncate" style={{ color: a.color }}>
+                      {a.name}
+                    </span>
+                    <span className="font-mono text-[7.5px] text-white/40 truncate">
+                      {i === 1 ? "(y/N)?" : "thinking…"}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              {/* Broadcast bar */}
+              <div
+                className="border px-2 py-1.5 flex items-center gap-1.5"
+                style={{ borderColor: `${ORANGE}33`, background: `${ORANGE}08` }}
+              >
+                <span style={{ color: ORANGE }} className="font-mono text-[8.5px]">›</span>
+                <span className="font-mono text-[8.5px] text-white/60 truncate flex-1">refactor auth</span>
+                <span className="font-mono text-[7.5px] text-white/30">→ all</span>
+              </div>
+              {/* Floating key-bar */}
+              <div className="flex items-center justify-between gap-1 pt-0.5">
+                {["ESC", "TAB", "^C", "↑", "↓", "↵"].map((k) => (
+                  <span
+                    key={k}
+                    className="flex-1 text-center font-mono text-[8px] text-white/55 border border-white/10 bg-white/[0.03] py-1"
+                  >
+                    {k}
+                  </span>
+                ))}
+              </div>
+            </div>
+            {/* Home indicator */}
+            <div className="flex justify-center pb-1.5">
+              <div className="w-24 h-1 rounded-full bg-white/30" />
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    </section>
+  );
+}
+
+/* ─────────────────────────────────────────
+   Pricing / license callout
+───────────────────────────────────────── */
+function PricingCallout() {
+  return (
+    <section id="pricing" className="py-24 px-5 sm:px-6 max-w-7xl mx-auto">
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.5 }}
+        className="border border-white/[0.08] p-8 sm:p-12 grid grid-cols-1 lg:grid-cols-[1fr_auto] items-center gap-8"
+        style={{ background: `linear-gradient(135deg, ${ORANGE}06 0%, transparent 60%)` }}
+      >
+        <div className="flex flex-col gap-5 min-w-0">
+          <div className="flex items-center gap-2.5">
+            <div
+              className="w-8 h-8 flex items-center justify-center"
+              style={{ border: `1px solid ${ORANGE}33`, color: ORANGE }}
+            >
+              <Scale size={15} />
+            </div>
+            <p className="text-[11px] font-mono uppercase tracking-widest text-white/40">Pricing</p>
+          </div>
+          <h2 className="text-[clamp(2rem,5vw,3.75rem)] font-black font-mono tracking-tighter leading-[1.04]">
+            Free. Forever.<br />
+            <span style={{ color: ORANGE }}>MIT licensed.</span>
+          </h2>
+          <p className="text-[15px] text-white/55 leading-relaxed max-w-xl font-sans">
+            No paid tier, no usage caps, no hosted SaaS upsell. You pay for the box you run
+            it on — a $5 VPS handles one person comfortably — and the API credits you'd
+            already be paying your model providers. We never see your prompts, code, or keys.
+          </p>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-[12px] font-mono text-white/50 pt-1">
+            <span className="flex items-center gap-1.5">
+              <Check size={12} style={{ color: ORANGE }} /> No account
+            </span>
+            <span className="text-white/15">·</span>
+            <span className="flex items-center gap-1.5">
+              <Check size={12} style={{ color: ORANGE }} /> No credit card
+            </span>
+            <span className="text-white/15">·</span>
+            <span className="flex items-center gap-1.5">
+              <Check size={12} style={{ color: ORANGE }} /> No telemetry
+            </span>
+            <span className="text-white/15">·</span>
+            <span className="flex items-center gap-1.5">
+              <Check size={12} style={{ color: ORANGE }} /> No upsell
+            </span>
+          </div>
+        </div>
+        <div className="flex flex-col gap-3 shrink-0 lg:items-end">
+          <a
+            href={`${REPO_URL}/blob/main/LICENSE`}
+            target="_blank"
+            rel="noreferrer"
+            className="h-11 px-5 text-[13px] font-mono font-semibold text-white border border-white/15 hover:border-white/30 flex items-center gap-2 transition-colors"
+            data-testid="pricing-license"
+          >
+            <Scale size={14} />
+            Read the license
+          </a>
+          <a
+            href="https://github.com/sponsors/fleet-watcher"
+            target="_blank"
+            rel="noreferrer"
+            className="text-[12px] font-mono text-white/40 hover:text-white/70 transition-colors lg:text-right"
+            data-testid="pricing-sponsor"
+          >
+            Like it? Sponsor the project →
+          </a>
+        </div>
+      </motion.div>
+    </section>
   );
 }
