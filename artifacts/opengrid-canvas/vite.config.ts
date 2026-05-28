@@ -37,6 +37,21 @@ export default defineConfig({
     fs: {
       strict: true,
     },
+    // Dev-only convenience: when the dev server is opened directly (e.g.
+    // `:5000` instead of through the artifact path-router on `:80`), forward
+    // /api and /ws to the API server so the canvas still works. Production
+    // builds are static and unaffected — the shared proxy handles routing.
+    proxy: {
+      "/api": {
+        target: `http://localhost:${process.env.API_PROXY_PORT ?? 8080}`,
+        changeOrigin: true,
+      },
+      "/ws": {
+        target: `ws://localhost:${process.env.API_PROXY_PORT ?? 8080}`,
+        ws: true,
+        changeOrigin: true,
+      },
+    },
   },
   preview: {
     port,

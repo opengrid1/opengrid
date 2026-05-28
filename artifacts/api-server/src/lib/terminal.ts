@@ -12,7 +12,11 @@ import { attachWs, createSession, detachWs, getSession } from "./sessions";
 // an arbitrary command. This prevents the WebSocket from being used as a
 // generic RCE channel.
 const AGENT_REGISTRY: Record<string, { file: string; args: string[] }> = {
-  claude: { file: "claude", args: [] },
+  // --bare forces Anthropic auth to ANTHROPIC_API_KEY only (no OAuth, no
+  // keychain reads, no onboarding wizard). Open Grid's whole model is BYO
+  // per-session API keys, so the OAuth flow is actively user-hostile here —
+  // it doesn't work on mobile and the wizard re-runs every fresh workspace.
+  claude: { file: "claude", args: ["--bare"] },
   codex: { file: "codex", args: [] },
   gemini: { file: "gemini", args: [] },
   cursor: { file: "cursor-agent", args: [] },
