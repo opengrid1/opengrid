@@ -19,7 +19,7 @@ RUN apt-get update \
        python3 make g++ git ca-certificates \
   && rm -rf /var/lib/apt/lists/*
 
-RUN corepack enable && corepack prepare pnpm@9.15.0 --activate
+RUN corepack enable && corepack prepare pnpm@10.26.1 --activate
 
 WORKDIR /app
 
