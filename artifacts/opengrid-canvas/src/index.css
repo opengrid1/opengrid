@@ -4,6 +4,15 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Smooth-scroll for in-page anchor nav (Features / Agents / FAQ / etc.). */
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 4rem;
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
 @theme inline {
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));

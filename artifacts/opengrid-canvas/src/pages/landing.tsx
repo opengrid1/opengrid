@@ -21,9 +21,12 @@ import {
   Download,
   Copy,
   Check,
+  Menu,
+  X,
 } from "lucide-react";
 
 const ORANGE = "#FF4500";
+const REPO_URL = "https://github.com/fleet-watcher/opengrid";
 
 // CLI agents Open Grid actually spawns over PTY (server-side registry in
 // lib/terminal.ts). Keep this list in sync with AGENT_REGISTRY.
@@ -36,10 +39,19 @@ const AGENTS: { name: string; color: string; install: string }[] = [
   { name: "aider",   color: "#F1FA8C", install: "pip install aider-chat" },
 ];
 
+const NAV_LINKS = [
+  { href: "#features", label: "Features", testId: "nav-features" },
+  { href: "#agents", label: "Agents", testId: "nav-agents" },
+  { href: "#selfhost", label: "Self-host", testId: "nav-selfhost" },
+  { href: "#security", label: "Security", testId: "nav-security" },
+  { href: "#faq", label: "FAQ", testId: "nav-faq" },
+];
+
 export default function Landing() {
   const [, setLocation] = useLocation();
   const [scrolled, setScrolled] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   useEffect(() => {
     document.documentElement.classList.add("dark");
@@ -47,6 +59,14 @@ export default function Landing() {
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  // Close the mobile nav when the user navigates to a section.
+  useEffect(() => {
+    if (!mobileNavOpen) return;
+    const onHash = () => setMobileNavOpen(false);
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
+  }, [mobileNavOpen]);
 
   return (
     <div className="min-h-screen bg-[#000] text-white overflow-x-hidden">
@@ -70,20 +90,20 @@ export default function Landing() {
             <span className="font-mono font-bold text-sm tracking-tight">Open Grid</span>
           </button>
 
-          <div className="hidden md:flex items-center gap-7 text-[13px] font-mono text-white/40">
-            <a href="#features" className="hover:text-white transition-colors" data-testid="nav-features">Features</a>
-            <a href="#agents" className="hover:text-white transition-colors" data-testid="nav-agents">Agents</a>
-            <a href="#selfhost" className="hover:text-white transition-colors" data-testid="nav-selfhost">Self-host</a>
-            <a href="#security" className="hover:text-white transition-colors" data-testid="nav-security">Security</a>
-            <a href="#faq" className="hover:text-white transition-colors" data-testid="nav-faq">FAQ</a>
+          <div className="hidden md:flex items-center gap-7 text-[13px] font-mono text-white/55">
+            {NAV_LINKS.map((l) => (
+              <a key={l.href} href={l.href} className="hover:text-white transition-colors" data-testid={l.testId}>
+                {l.label}
+              </a>
+            ))}
           </div>
 
           <div className="flex items-center gap-3">
             <a
-              href="https://github.com/fleet-watcher/opengrid"
+              href={REPO_URL}
               target="_blank"
               rel="noreferrer"
-              className="text-white/40 hover:text-white transition-colors"
+              className="text-white/55 hover:text-white transition-colors"
               data-testid="nav-github"
               aria-label="GitHub"
             >
@@ -97,8 +117,48 @@ export default function Landing() {
             >
               Open canvas
             </button>
+            <button
+              onClick={() => setMobileNavOpen((v) => !v)}
+              className="md:hidden w-9 h-9 -mr-2 flex items-center justify-center text-white/70 hover:text-white"
+              aria-label={mobileNavOpen ? "Close menu" : "Open menu"}
+              aria-expanded={mobileNavOpen}
+              aria-controls="mobile-nav-panel"
+              data-testid="nav-mobile-toggle"
+            >
+              {mobileNavOpen ? <X size={20} /> : <Menu size={20} />}
+            </button>
           </div>
         </div>
+
+        {/* Mobile nav panel */}
+        <AnimatePresence>
+          {mobileNavOpen && (
+            <motion.div
+              id="mobile-nav-panel"
+              className="md:hidden border-t border-white/[0.06] bg-black/95 backdrop-blur-md"
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+              style={{ overflow: "hidden" }}
+              data-testid="mobile-nav-panel"
+            >
+              <div className="px-5 py-3 flex flex-col">
+                {NAV_LINKS.map((l) => (
+                  <a
+                    key={l.href}
+                    href={l.href}
+                    onClick={() => setMobileNavOpen(false)}
+                    className="py-3 text-[14px] font-mono text-white/70 hover:text-white border-b border-white/[0.04] last:border-b-0"
+                    data-testid={`${l.testId}-mobile`}
+                  >
+                    {l.label}
+                  </a>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </nav>
 
       {/* ── HERO ── */}
@@ -161,7 +221,7 @@ export default function Landing() {
             </a>
           </div>
 
-          <div className="flex items-center gap-3 text-[11px] font-mono text-white/30 pt-2">
+          <div className="flex items-center gap-3 text-[11px] font-mono text-white/55 pt-2">
             <span className="flex items-center gap-1.5">
               <Globe size={12} /> Works in any browser
             </span>
@@ -541,13 +601,13 @@ export default function Landing() {
                 <BrandMark size={22} />
                 <span className="font-mono text-base font-bold">Open Grid</span>
               </div>
-              <p className="text-white/40 text-[12.5px] font-mono leading-relaxed max-w-xs">
+              <p className="text-white/55 text-[12.5px] font-mono leading-relaxed max-w-xs">
                 A self-hosted terminal canvas for AI coding agents. No accounts,
                 no telemetry, no lock-in. MIT licensed.
               </p>
               <div className="flex items-center gap-3 pt-1">
                 <a
-                  href="https://github.com/fleet-watcher/opengrid"
+                  href={REPO_URL}
                   target="_blank"
                   rel="noreferrer"
                   className="w-9 h-9 flex items-center justify-center rounded-md bg-white/5 hover:bg-white/10 text-white/60 hover:text-white transition-colors"
@@ -557,7 +617,7 @@ export default function Landing() {
                   <SiGithub size={15} />
                 </a>
                 <a
-                  href="https://github.com/fleet-watcher/opengrid/discussions"
+                  href={`${REPO_URL}/discussions`}
                   target="_blank"
                   rel="noreferrer"
                   className="text-[11.5px] font-mono text-white/40 hover:text-white transition-colors"
@@ -591,7 +651,7 @@ export default function Landing() {
                 </li>
                 <li>
                   <a
-                    href="https://github.com/fleet-watcher/opengrid/releases"
+                    href={`${REPO_URL}/releases`}
                     target="_blank"
                     rel="noreferrer"
                     className="hover:text-white transition-colors"
@@ -602,7 +662,7 @@ export default function Landing() {
                 </li>
                 <li>
                   <a
-                    href="https://github.com/fleet-watcher/opengrid/pkgs/container/opengrid"
+                    href={`${REPO_URL}/pkgs/container/opengrid`}
                     target="_blank"
                     rel="noreferrer"
                     className="hover:text-white transition-colors"
@@ -613,7 +673,7 @@ export default function Landing() {
                 </li>
                 <li>
                   <a
-                    href="https://github.com/fleet-watcher/opengrid"
+                    href={REPO_URL}
                     target="_blank"
                     rel="noreferrer"
                     className="hover:text-white transition-colors"
@@ -633,7 +693,7 @@ export default function Landing() {
               <ul className="flex flex-col gap-2.5 text-[12.5px] font-mono text-white/55">
                 <li>
                   <a
-                    href="https://github.com/fleet-watcher/opengrid#readme"
+                    href={`${REPO_URL}#readme`}
                     target="_blank"
                     rel="noreferrer"
                     className="hover:text-white transition-colors"
@@ -644,7 +704,7 @@ export default function Landing() {
                 </li>
                 <li>
                   <a
-                    href="https://github.com/fleet-watcher/opengrid/blob/main/CONTRIBUTING.md"
+                    href={`${REPO_URL}/blob/main/CONTRIBUTING.md`}
                     target="_blank"
                     rel="noreferrer"
                     className="hover:text-white transition-colors"
@@ -655,7 +715,7 @@ export default function Landing() {
                 </li>
                 <li>
                   <a
-                    href="https://github.com/fleet-watcher/opengrid/discussions"
+                    href={`${REPO_URL}/discussions`}
                     target="_blank"
                     rel="noreferrer"
                     className="hover:text-white transition-colors"
@@ -666,7 +726,7 @@ export default function Landing() {
                 </li>
                 <li>
                   <a
-                    href="https://github.com/fleet-watcher/opengrid/issues"
+                    href={`${REPO_URL}/issues`}
                     target="_blank"
                     rel="noreferrer"
                     className="hover:text-white transition-colors"
@@ -702,7 +762,7 @@ export default function Landing() {
                 </li>
                 <li>
                   <a
-                    href="https://github.com/fleet-watcher/opengrid/blob/main/SECURITY.md"
+                    href={`${REPO_URL}/blob/main/SECURITY.md`}
                     target="_blank"
                     rel="noreferrer"
                     className="hover:text-white transition-colors"
@@ -713,7 +773,7 @@ export default function Landing() {
                 </li>
                 <li>
                   <a
-                    href="https://github.com/fleet-watcher/opengrid#privacy"
+                    href={`${REPO_URL}#privacy`}
                     target="_blank"
                     rel="noreferrer"
                     className="hover:text-white transition-colors"
@@ -729,7 +789,7 @@ export default function Landing() {
                 </li>
                 <li>
                   <a
-                    href="https://github.com/fleet-watcher/opengrid/blob/main/LICENSE"
+                    href={`${REPO_URL}/blob/main/LICENSE`}
                     target="_blank"
                     rel="noreferrer"
                     className="hover:text-white transition-colors"
@@ -1113,7 +1173,7 @@ PORT=5173 pnpm --filter @workspace/opengrid-canvas run dev`}
           Open Grid is meant to live on a box you can <span className="text-white/70">reach from anywhere</span> —
           your laptop is fine, but a homelab or VPS lets your phone, tablet, and other machines hit the same canvas.
           {" "}
-          <a href="https://github.com/fleet-watcher/opengrid" target="_blank" rel="noreferrer" className="text-white/70 hover:text-white underline underline-offset-2 decoration-white/20 hover:decoration-white">
+          <a href={REPO_URL} target="_blank" rel="noreferrer" className="text-white/70 hover:text-white underline underline-offset-2 decoration-white/20 hover:decoration-white">
             View source on GitHub
           </a>.
         </p>
