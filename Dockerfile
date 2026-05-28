@@ -36,8 +36,11 @@ COPY artifacts/api-server/package.json   artifacts/api-server/
 COPY artifacts/opengrid-canvas/package.json artifacts/opengrid-canvas/
 COPY scripts/package.json                scripts/
 
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
-    pnpm install --frozen-lockfile
+# NOTE: no BuildKit cache mount here on purpose. Railway requires cache mount
+# IDs to be scoped as `s/<service-id>-<target>` which we can't know at
+# build time. Plain install is ~20s slower on rebuild but portable across
+# every BuildKit host (Railway, Fly, plain Docker, GitHub Actions).
+RUN pnpm install --frozen-lockfile
 
 # Now bring in the rest of the source.
 COPY . .
