@@ -28,6 +28,7 @@ import {
   Scale,
   Star,
   Clock,
+  Coins,
 } from "lucide-react";
 
 // Format a recent date as "Nh ago" / "Nd ago" / "Mon D". Used by the
@@ -89,6 +90,14 @@ function useRepoStats(): RepoStats {
 
 const ORANGE = "#FF4500";
 const REPO_URL = "https://github.com/opengrid1/opengrid";
+// $OG token contract — launched in the @bankrbot ecosystem on Base. Fees
+// route to the project and are used for ongoing improvements (infra, new
+// features, mobile polish). Surfacing the CA inline on the landing page
+// lets prospective holders verify on BaseScan in one click instead of
+// hunting through replies or screenshots.
+const OG_TOKEN_ADDRESS = "0x18fb571c84483a9875b37f499d925dce9827dba3";
+const OG_TOKEN_URL = `https://basescan.org/token/${OG_TOKEN_ADDRESS}`;
+const truncateAddress = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`;
 
 // Three small inline pills: stars / MIT / last commit. All clickable, all
 // render immediately (no external image dependency), and resolve to live
@@ -137,6 +146,19 @@ function RepoBadges() {
         <Clock size={11} className="opacity-70" />
         <span className="text-white/40">updated</span>
         <span>{timeAgo(lastCommit)}</span>
+      </a>
+      <a
+        href={OG_TOKEN_URL}
+        target="_blank"
+        rel="noreferrer"
+        data-testid="badge-token"
+        aria-label={`$OG token contract on Base: ${OG_TOKEN_ADDRESS}`}
+        title={OG_TOKEN_ADDRESS}
+        className={pill}
+      >
+        <Coins size={11} className="opacity-70" style={{ color: ORANGE }} />
+        <span>$OG</span>
+        <span className="text-white/40">{truncateAddress(OG_TOKEN_ADDRESS)}</span>
       </a>
     </div>
   );
