@@ -26,10 +26,121 @@ import {
   Smartphone,
   Sparkles,
   Scale,
+  Star,
+  Clock,
 } from "lucide-react";
+
+// Format a recent date as "Nh ago" / "Nd ago" / "Mon D". Used by the
+// landing "last commit" pill. Returns the empty string for null input so
+// the pill can render a stable skeleton while the GitHub API fetch is in
+// flight, with no layout shift on resolve.
+function timeAgo(iso: string | null): string {
+  if (!iso) return "…";
+  const then = new Date(iso).getTime();
+  if (Number.isNaN(then)) return "…";
+  const diffMs = Date.now() - then;
+  const m = Math.floor(diffMs / 60_000);
+  if (m < 1) return "just now";
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  const d = Math.floor(h / 24);
+  if (d < 30) return `${d}d ago`;
+  return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
+
+interface RepoStats {
+  stars: number | null;
+  lastCommit: string | null;
+}
+
+// Self-hosted "live signals" — fetches stars + last commit timestamp directly
+// from GitHub once per page load. Replaces img.shields.io badges (which were
+// blocked / broken-image-iconing on some corporate / mobile networks). Fails
+// silently — pills just render their default text and remain clickable.
+function useRepoStats(): RepoStats {
+  const [stats, setStats] = useState<RepoStats>({ stars: null, lastCommit: null });
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const r = await fetch("https://api.github.com/repos/opengrid1/opengrid", {
+          headers: { Accept: "application/vnd.github+json" },
+        });
+        if (!r.ok || cancelled) return;
+        const j = (await r.json()) as {
+          stargazers_count?: number;
+          pushed_at?: string;
+        };
+        setStats({
+          stars: typeof j.stargazers_count === "number" ? j.stargazers_count : null,
+          lastCommit: typeof j.pushed_at === "string" ? j.pushed_at : null,
+        });
+      } catch {
+        /* offline / rate-limited / blocked — keep skeleton */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+  return stats;
+}
 
 const ORANGE = "#FF4500";
 const REPO_URL = "https://github.com/opengrid1/opengrid";
+
+// Three small inline pills: stars / MIT / last commit. All clickable, all
+// render immediately (no external image dependency), and resolve to live
+// numbers from the GitHub API within ~200ms. Skeleton state uses an em-dash
+// so the layout doesn't reflow when data arrives. Styling matches the
+// rest of the brutalist monochrome chrome on the landing page.
+function RepoBadges() {
+  const { stars, lastCommit } = useRepoStats();
+  const pill =
+    "inline-flex items-center gap-1.5 px-2 py-1 rounded border border-white/10 " +
+    "bg-white/[0.02] hover:bg-white/[0.06] hover:border-white/20 transition-colors " +
+    "text-[11px] font-mono text-white/70 hover:text-white";
+  return (
+    <div className="flex items-center gap-2 flex-wrap pt-1">
+      <a
+        href={REPO_URL}
+        target="_blank"
+        rel="noreferrer"
+        data-testid="badge-stars"
+        aria-label="GitHub stars"
+        className={pill}
+      >
+        <Star size={11} className="opacity-70" style={{ color: ORANGE }} fill={ORANGE} />
+        <span>{stars === null ? "—" : stars.toLocaleString()}</span>
+        <span className="text-white/40">stars</span>
+      </a>
+      <a
+        href={`${REPO_URL}/blob/main/LICENSE`}
+        target="_blank"
+        rel="noreferrer"
+        data-testid="badge-license"
+        aria-label="MIT license"
+        className={pill}
+      >
+        <Scale size={11} className="opacity-70" />
+        <span>MIT</span>
+      </a>
+      <a
+        href={`${REPO_URL}/commits/main`}
+        target="_blank"
+        rel="noreferrer"
+        data-testid="badge-commit"
+        aria-label="Last commit"
+        className={pill}
+      >
+        <Clock size={11} className="opacity-70" />
+        <span className="text-white/40">updated</span>
+        <span>{timeAgo(lastCommit)}</span>
+      </a>
+    </div>
+  );
+}
 
 // CLI agents Open Grid actually spawns over PTY (server-side registry in
 // lib/terminal.ts). Keep this list in sync with AGENT_REGISTRY.
@@ -236,30 +347,14 @@ export default function Landing() {
             <span>No telemetry</span>
           </div>
 
-          {/* Live project signals — pulled from GitHub by shields.io */}
-          <div className="flex items-center gap-2 flex-wrap pt-1">
-            <a href={REPO_URL} target="_blank" rel="noreferrer" data-testid="badge-stars" aria-label="GitHub stars">
-              <img
-                src="https://img.shields.io/github/stars/opengrid1/opengrid?style=flat-square&label=stars&color=FF4500&labelColor=0a0a0a"
-                alt="GitHub stars"
-                height={20}
-              />
-            </a>
-            <a href={`${REPO_URL}/blob/main/LICENSE`} target="_blank" rel="noreferrer" data-testid="badge-license" aria-label="MIT license">
-              <img
-                src="https://img.shields.io/github/license/opengrid1/opengrid?style=flat-square&color=white&labelColor=0a0a0a"
-                alt="MIT license"
-                height={20}
-              />
-            </a>
-            <a href={`${REPO_URL}/commits/main`} target="_blank" rel="noreferrer" data-testid="badge-commit" aria-label="Last commit">
-              <img
-                src="https://img.shields.io/github/last-commit/opengrid1/opengrid?style=flat-square&label=last%20commit&color=white&labelColor=0a0a0a"
-                alt="Last commit"
-                height={20}
-              />
-            </a>
-          </div>
+          {/* Live project signals — self-hosted pills, GitHub API client fetch.
+              Previously used img.shields.io but it got blocked / broken-image
+              on enough networks (corp proxies, mobile carriers, ad blockers)
+              that "is this project even alive?" became a real first-impression
+              risk. These render instantly with a skeleton and resolve to live
+              numbers within ~200ms. */}
+          <RepoBadges />
+
         </motion.div>
 
         {/* Right: Browser mockup */}
