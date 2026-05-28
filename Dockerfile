@@ -36,7 +36,7 @@ COPY artifacts/api-server/package.json   artifacts/api-server/
 COPY artifacts/opengrid-canvas/package.json artifacts/opengrid-canvas/
 COPY scripts/package.json                scripts/
 
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
+RUN --mount=type=cache,id=s/011eaa1f-a803-4047-8896-7b437766c7d6-/pnpm/store,target=/pnpm/store \
     pnpm install --frozen-lockfile
 
 # Now bring in the rest of the source.
