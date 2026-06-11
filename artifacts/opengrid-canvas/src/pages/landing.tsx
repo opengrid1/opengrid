@@ -31,6 +31,10 @@ import {
   Coins,
 } from "lucide-react";
 
+import sessionShot1 from "@/assets/sessions/session-1.jpg";
+import sessionShot2 from "@/assets/sessions/session-2.jpg";
+import sessionShot3 from "@/assets/sessions/session-3.jpg";
+
 // Format a recent date as "Nh ago" / "Nd ago" / "Mon D". Used by the
 // landing "last commit" pill. Returns the empty string for null input so
 // the pill can render a stable skeleton while the GitHub API fetch is in
@@ -178,6 +182,7 @@ const AGENTS: { name: string; color: string; install: string }[] = [
 const NAV_LINKS = [
   { href: "#features", label: "Features", testId: "nav-features" },
   { href: "#agents", label: "Agents", testId: "nav-agents" },
+  { href: "#screenshots", label: "Screenshots", testId: "nav-screenshots" },
   { href: "#selfhost", label: "Self-host", testId: "nav-selfhost" },
   { href: "#security", label: "Security", testId: "nav-security" },
   { href: "#faq", label: "FAQ", testId: "nav-faq" },
@@ -677,6 +682,12 @@ export default function Landing() {
 
       {/* ── MOBILE ── */}
       <MobileSection />
+
+      {/* ── DIVIDER ── */}
+      <div className="border-t border-white/[0.06]" />
+
+      {/* ── SCREENSHOTS ── */}
+      <ScreenshotsSection />
 
       {/* ── DIVIDER ── */}
       <div className="border-t border-white/[0.06]" />
@@ -1851,6 +1862,85 @@ function MobileSection() {
 /* ─────────────────────────────────────────
    Pricing / license callout
 ───────────────────────────────────────── */
+/* ─────────────────────────  SCREENSHOTS  ───────────────────────── */
+
+const SESSION_VIDEO_CID = "bafybeigrjv27xb76dxifwpx3vua737o5btkv5nyikrcxfzg2ljhcak5az4";
+const SESSION_VIDEO_URL = `https://ipfs.io/ipfs/${SESSION_VIDEO_CID}`;
+
+const SESSION_SHOTS: { src: string; alt: string; cid: string }[] = [
+  {
+    src: sessionShot1,
+    alt: "Claude Code session on mobile — opengrid PR #3 with CI green",
+    cid: "bafkreibp64txb6bpejhri3ja73yfnoobipe7ea7zrii6vz35squkp4434i",
+  },
+  {
+    src: sessionShot2,
+    alt: "Agent session reporting fee-claim transactions with verified balances",
+    cid: "bafkreicis6rsn67hibuvcztipo3c5tjyn2qhdgw4a64pdndkiorjg5hnfm",
+  },
+  {
+    src: sessionShot3,
+    alt: "Agent verifying an on-chain claim and flagging an imposter contract",
+    cid: "bafkreie4fep7vtkn5xstyc64e32eomeycqp27lmmd4avdnkgfpanvkombu",
+  },
+];
+
+function ScreenshotsSection() {
+  return (
+    <section id="screenshots" className="py-24 px-5 sm:px-6 max-w-7xl mx-auto">
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        className="mb-14"
+      >
+        <p className="text-[11px] font-mono uppercase tracking-widest text-white/30 mb-3">From the field</p>
+        <h2 className="text-[clamp(2rem,4vw,3.5rem)] font-black font-mono tracking-tighter leading-tight">
+          Real sessions.<br />
+          <span className="text-white/40">Straight from the phone.</span>
+        </h2>
+        <p className="text-[15px] text-white/50 mt-4 max-w-xl font-sans">
+          Unedited screenshots of agent sessions running through Open Grid. Originals are pinned on IPFS — every capture links to its content hash.
+        </p>
+      </motion.div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px bg-white/[0.06]">
+        {SESSION_SHOTS.map((shot) => (
+          <figure key={shot.cid} className="bg-[#000] p-4 flex flex-col gap-3">
+            <a
+              href={`https://ipfs.io/ipfs/${shot.cid}`}
+              target="_blank"
+              rel="noreferrer"
+              className="block border border-white/[0.08] overflow-hidden transition-opacity hover:opacity-85"
+            >
+              <img src={shot.src} alt={shot.alt} loading="lazy" className="w-full h-auto" />
+            </a>
+            <figcaption className="font-mono text-[10px] text-white/30 truncate" title={shot.cid}>
+              ipfs://{shot.cid}
+            </figcaption>
+          </figure>
+        ))}
+      </div>
+
+      <div className="mt-10">
+        <video
+          src={SESSION_VIDEO_URL}
+          controls
+          playsInline
+          preload="metadata"
+          className="w-full max-w-3xl mx-auto block border border-white/[0.08]"
+        />
+        <p className="font-mono text-[10px] text-white/30 text-center mt-3">
+          Screen recording —{" "}
+          <a href={SESSION_VIDEO_URL} target="_blank" rel="noreferrer" className="underline hover:text-white/60">
+            ipfs://{SESSION_VIDEO_CID}
+          </a>
+        </p>
+      </div>
+    </section>
+  );
+}
+
 function PricingCallout() {
   return (
     <section id="pricing" className="py-24 px-5 sm:px-6 max-w-7xl mx-auto">
