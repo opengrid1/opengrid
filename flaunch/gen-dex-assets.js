@@ -56,9 +56,10 @@ const banner = `<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="500
   <rect width="1500" height="500" fill="url(#bg)"/>
   ${scatter}
   <g transform="translate(-90, -30) scale(0.9)">${emblem}</g>
-  <text x="480" y="300" font-family="DejaVu Sans" font-weight="bold" font-size="150" letter-spacing="20" fill="${GOLD}">LORE</text>
-  <text x="487" y="365" font-family="DejaVu Sans" font-size="36" fill="#CFC9EE">Every legend starts somewhere.</text>
-  <text x="487" y="420" font-family="DejaVu Sans" font-size="27" fill="#8F86C9">$LORE · Base mainnet · flaunch.gg</text>
+  <text x="480" y="285" font-family="DejaVu Sans" font-weight="bold" font-size="150" letter-spacing="20" fill="${GOLD}">LORE</text>
+  <text x="487" y="348" font-family="DejaVu Sans" font-size="36" fill="#CFC9EE">Every legend starts somewhere.</text>
+  <text x="487" y="398" font-family="DejaVu Sans" font-size="29" fill="${GOLD_BRIGHT}">Deployed by Mythos</text>
+  <text x="487" y="440" font-family="DejaVu Sans" font-size="25" fill="#8F86C9">$LORE · Base mainnet · flaunch.gg</text>
 </svg>`;
 
 const bannerPng = await sharp(Buffer.from(banner)).png().toBuffer();
