@@ -126,6 +126,13 @@
     <span id="copy-hint" style="color:var(--muted)"></span>
   </div>
 
+  <div class="contract">
+    <span>Fee wallet</span> <code id="wallet-addr" title="click to copy"></code>
+    <span id="wallet-bal" style="color:var(--gold-bright); font-family:ui-monospace,monospace"></span>
+    <a id="wallet-link" target="_blank" rel="noopener">BaseScan ↗</a>
+    <span style="color:var(--muted)">· holds creator NFT #110893 · receives all creator fees</span>
+  </div>
+
   <section class="lore">
     <h2>📖 The Lore</h2>
     <p class="first"><span class="drop">Every legend starts somewhere.</span> LORE is a story written onchain — branded, named, and illustrated by an AI, and launched on Base through Flaunch.</p>
@@ -252,11 +259,13 @@ async function load() {
       .forEach((blk, i) => { tsMap[blocks[i]] = parseInt(blk.timestamp, 16); });
 
     const total = claims.reduce((s, c) => s + c.amount, 0n);
-    const [pendingHex, priceHex] = await Promise.all([
+    const [pendingHex, priceHex, balHex] = await Promise.all([
       rpc("eth_call", [{ to: ESCROW, data: BAL_SELECTOR + FEE_WALLET.slice(2).padStart(64, "0") }, "latest"]),
       rpc("eth_call", [{ to: CHAINLINK_ETHUSD, data: LATEST_ROUND }, "latest"]),
+      rpc("eth_getBalance", [FEE_WALLET, "latest"]),
     ]);
     const pending = BigInt(pendingHex);
+    const walletBal = BigInt(balHex);
     const price = Number(BigInt("0x" + priceHex.slice(2).slice(64, 128))) / 1e8; // ETH/USD, 8 decimals
 
     document.getElementById("total").innerHTML = fmt(total) + "<small> ETH</small>";
@@ -267,6 +276,7 @@ async function load() {
     document.getElementById("pending-usd").textContent = usd(pending, price);
     document.getElementById("last").textContent = claims.length ? ago(tsMap[claims[0].block.toString()]) : "—";
     document.getElementById("ethusd").textContent = price ? "ETH = $" + price.toLocaleString("en-US", { maximumFractionDigits: 0 }) : "";
+    document.getElementById("wallet-bal").textContent = "Balance: " + fmt(walletBal) + " ETH" + (price ? " (" + usd(walletBal, price) + ")" : "");
 
     document.getElementById("spark").innerHTML = sparkline([...claims].reverse());
 
@@ -290,15 +300,22 @@ async function load() {
   }
 }
 
-// static links + copy-to-clipboard for the contract address
+// static links + copy-to-clipboard
+const FEE_WALLET_DISPLAY = "0xcB59181b251BB98133b7200c34F1619864d291D5";
 document.getElementById("token-addr").textContent = TOKEN;
+document.getElementById("wallet-addr").textContent = FEE_WALLET_DISPLAY;
 document.getElementById("escrow-addr").textContent = ESCROW;
 document.getElementById("buy-link").href = "https://flaunch.gg/base/coin/" + TOKEN;
 document.getElementById("chart-link").href = "https://dexscreener.com/base/" + TOKEN;
 document.getElementById("scan-link").href = "https://basescan.org/token/" + TOKEN;
-document.getElementById("token-addr").addEventListener("click", async () => {
-  try { await navigator.clipboard.writeText(TOKEN); const h = document.getElementById("copy-hint"); h.textContent = "✓ copied"; h.className = "copied"; setTimeout(() => { h.textContent = ""; }, 1500); } catch (e) {}
-});
+document.getElementById("wallet-link").href = "https://basescan.org/address/" + FEE_WALLET;
+function copyOnClick(el, text) {
+  el.addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText(text); const old = el.textContent; el.textContent = "✓ copied"; el.classList.add("copied"); setTimeout(() => { el.textContent = old; el.classList.remove("copied"); }, 1200); } catch (e) {}
+  });
+}
+copyOnClick(document.getElementById("token-addr"), TOKEN);
+copyOnClick(document.getElementById("wallet-addr"), FEE_WALLET_DISPLAY);
 load();
 setInterval(load, 45000);
 </script>
