@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>LORE · Public Fee Claims</title>
+<style>
+  :root {
+    --indigo-dark: #171338;
+    --indigo-mid: #2a2566;
+    --indigo-card: #211c4d;
+    --gold: #e9b824;
+    --gold-bright: #ffd95a;
+    --text: #efecff;
+    --muted: #8f86c9;
+    --line: #34306e;
+    --green: #4ade80;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: radial-gradient(120% 100% at 30% 0%, var(--indigo-mid), var(--indigo-dark));
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.5;
+  }
+  .wrap { max-width: 920px; margin: 0 auto; padding: 32px 20px 64px; }
+  header { display: flex; align-items: center; gap: 18px; margin-bottom: 8px; }
+  header svg { width: 64px; height: 64px; flex: none; }
+  h1 { font-size: 40px; letter-spacing: 8px; margin: 0; color: var(--gold); font-weight: 800; }
+  .tagline { color: var(--muted); margin: 2px 0 0; font-size: 15px; }
+  .contract {
+    margin: 20px 0 28px; padding: 12px 16px; background: rgba(0,0,0,.22);
+    border: 1px solid var(--line); border-radius: 12px; font-size: 13px;
+    display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center;
+  }
+  .contract code { color: var(--gold-bright); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; word-break: break-all; }
+  .contract a { color: var(--muted); text-decoration: none; border-bottom: 1px dotted var(--muted); }
+  .contract a:hover { color: var(--text); }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 28px; }
+  .card { background: var(--indigo-card); border: 1px solid var(--line); border-radius: 16px; padding: 18px 20px; }
+  .card .label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+  .card .value { font-size: 28px; font-weight: 700; color: var(--gold); }
+  .card .value small { font-size: 14px; color: var(--muted); font-weight: 400; }
+  .card.pending .value { color: var(--green); }
+  .section-title { display: flex; align-items: baseline; justify-content: space-between; margin: 0 0 12px; }
+  .section-title h2 { font-size: 18px; margin: 0; color: var(--text); font-weight: 600; }
+  .status { font-size: 12px; color: var(--muted); }
+  .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--green); margin-right: 5px; vertical-align: middle; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
+  table { width: 100%; border-collapse: collapse; background: var(--indigo-card); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; }
+  th, td { text-align: left; padding: 12px 16px; font-size: 14px; border-bottom: 1px solid var(--line); }
+  th { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+  tr:last-child td { border-bottom: none; }
+  td.amt { color: var(--gold); font-weight: 600; font-variant-numeric: tabular-nums; }
+  td a { color: var(--muted); text-decoration: none; font-family: ui-monospace, monospace; }
+  td a:hover { color: var(--gold-bright); }
+  .empty, .loading { text-align: center; color: var(--muted); padding: 32px; }
+  footer { margin-top: 32px; color: var(--muted); font-size: 12px; text-align: center; line-height: 1.7; }
+  footer code { color: var(--muted); }
+  .err { background: #3a1d2e; border: 1px solid #6b2d4a; color: #ffc9dd; padding: 12px 16px; border-radius: 12px; font-size: 13px; margin-bottom: 16px; display: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <svg viewBox="0 0 800 800" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="400" cy="400" r="386" fill="#1d1847" stroke="#e9b824" stroke-width="14"/>
+      <polygon points="400,156 419,210 476,212 431,247 447,302 400,270 353,302 369,247 324,212 381,210" fill="#ffd95a"/>
+      <path d="M400,330 C355,298 295,294 252,312 L252,448 C295,432 355,436 400,466 Z" fill="#e9b824"/>
+      <path d="M400,330 C445,298 505,294 548,312 L548,448 C505,432 445,436 400,466 Z" fill="#e9b824"/>
+      <line x1="400" y1="332" x2="400" y2="464" stroke="#1d1847" stroke-width="12"/>
+      <text x="400" y="600" text-anchor="middle" font-family="Arial, sans-serif" font-weight="bold" font-size="120" letter-spacing="14" fill="#e9b824">LORE</text>
+    </svg>
+    <div>
+      <h1>LORE</h1>
+      <p class="tagline">Public creator-fee claims · live from Base mainnet</p>
+    </div>
+  </header>
+
+  <div class="contract">
+    <span>Token</span> <code id="token-addr"></code>
+    <a id="token-link" target="_blank" rel="noopener">BaseScan ↗</a>
+    <a id="flaunch-link" target="_blank" rel="noopener">Flaunch ↗</a>
+  </div>
+
+  <div class="err" id="err"></div>
+
+  <div class="cards">
+    <div class="card"><div class="label">Total Claimed</div><div class="value" id="total">…<small> ETH</small></div></div>
+    <div class="card"><div class="label">Claims Made</div><div class="value" id="count">…</div></div>
+    <div class="card pending"><div class="label">Pending in Escrow</div><div class="value" id="pending">…<small> ETH</small></div></div>
+    <div class="card"><div class="label">Last Claim</div><div class="value" id="last" style="font-size:18px">…</div></div>
+  </div>
+
+  <div class="section-title">
+    <h2>Claim History</h2>
+    <span class="status"><span class="dot"></span><span id="status">loading…</span></span>
+  </div>
+  <table>
+    <thead><tr><th>When</th><th>Amount</th><th>Block</th><th>Transaction</th></tr></thead>
+    <tbody id="rows"><tr><td colspan="4" class="loading">Reading the chain…</td></tr></tbody>
+  </table>
+
+  <footer>
+    This page reads <strong>directly from Base mainnet</strong> in your browser — every figure is decoded live from the
+    Flaunch FeeEscrow contract <code id="escrow-addr"></code>. Nothing here is stored on a server; verify any row on BaseScan.<br/>
+    Fees are claimed by the holder of the creator NFT. Auto-refreshes every 45 seconds.
+  </footer>
+</div>
+
+<script>
+const RPCS = ["https://mainnet.base.org", "https://base.llamarpc.com", "https://base-rpc.publicnode.com", "https://1rpc.io/base"];
+const TOKEN = "0x96CD6f9FABb448924f717af8eD693eE636264df1";
+const ESCROW = "0x72e6f7948b1B1A343B477F39aAbd2E35E6D27dde";
+// Withdrawal(address _sender, address _recipient, address _token, uint256 _amount)
+const TOPIC = "0x342e7ff505a8a0364cd0dc2ff195c315e43bce86b204846ecd36913e117b109e";
+const BAL_SELECTOR = "0x27e235e3"; // balances(address)
+// Creator fees were claimed to the original creator wallet and then to the current fee wallet.
+const WALLETS = ["0x8b353febe45911d12bea9efe0b549909b417ed8b", "0xcb59181b251bb98133b7200c34f1619864d291d5"];
+const FEE_WALLET = "0xcb59181b251bb98133b7200c34f1619864d291d5";
+const LAUNCH_BLOCK = 47184400n;
+const CHUNK = 9000n;
+
+let rpcIdx = 0;
+async function rpc(method, params) {
+  for (let i = 0; i < RPCS.length; i++) {
+    const url = RPCS[(rpcIdx + i) % RPCS.length];
+    try {
+      const r = await fetch(url, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }) });
+      const j = await r.json();
+      if (j.error) throw new Error(j.error.message);
+      rpcIdx = (rpcIdx + i) % RPCS.length;
+      return j.result;
+    } catch (e) { if (i === RPCS.length - 1) throw e; }
+  }
+}
+const hx = (n) => "0x" + n.toString(16);
+const fmt = (wei, dp = 4) => (Number(wei) / 1e18).toFixed(dp);
+const short = (a) => a.slice(0, 6) + "…" + a.slice(-4);
+function ago(ts) {
+  const s = Math.floor(Date.now() / 1000 - ts);
+  if (s < 60) return s + "s ago";
+  if (s < 3600) return Math.floor(s / 60) + "m ago";
+  if (s < 86400) return Math.floor(s / 3600) + "h ago";
+  return Math.floor(s / 86400) + "d ago";
+}
+
+async function load() {
+  const errEl = document.getElementById("err");
+  try {
+    const latest = BigInt(await rpc("eth_blockNumber", []));
+    let logs = [];
+    const tasks = [];
+    for (let from = LAUNCH_BLOCK; from <= latest; from += CHUNK) {
+      const to = (from + CHUNK - 1n > latest) ? latest : from + CHUNK - 1n;
+      tasks.push(rpc("eth_getLogs", [{ address: ESCROW, topics: [TOPIC], fromBlock: hx(from), toBlock: hx(to) }]));
+    }
+    for (const chunk of await Promise.all(tasks)) logs = logs.concat(chunk);
+
+    const claims = logs.map((l) => {
+      const d = l.data.slice(2);
+      return {
+        recipient: "0x" + d.slice(88, 128),
+        amount: BigInt("0x" + d.slice(192, 256)),
+        tx: l.transactionHash,
+        block: BigInt(l.blockNumber),
+      };
+    }).filter((c) => WALLETS.includes(c.recipient.toLowerCase()))
+      .sort((a, b) => (b.block > a.block ? 1 : -1));
+
+    // timestamps for unique blocks
+    const blocks = [...new Set(claims.map((c) => c.block.toString()))];
+    const tsMap = {};
+    (await Promise.all(blocks.map((b) => rpc("eth_getBlockByNumber", [hx(BigInt(b)), false]))))
+      .forEach((blk, i) => { tsMap[blocks[i]] = parseInt(blk.timestamp, 16); });
+
+    const total = claims.reduce((s, c) => s + c.amount, 0n);
+    const pendingHex = await rpc("eth_call", [{ to: ESCROW, data: BAL_SELECTOR + FEE_WALLET.slice(2).padStart(64, "0") }, "latest"]);
+    const pending = BigInt(pendingHex);
+
+    document.getElementById("total").innerHTML = fmt(total) + "<small> ETH</small>";
+    document.getElementById("count").textContent = claims.length;
+    document.getElementById("pending").innerHTML = fmt(pending) + "<small> ETH</small>";
+    document.getElementById("last").textContent = claims.length ? ago(tsMap[claims[0].block.toString()]) : "—";
+
+    document.getElementById("rows").innerHTML = claims.length ? claims.map((c) => `
+      <tr>
+        <td>${ago(tsMap[c.block.toString()])}</td>
+        <td class="amt">${fmt(c.amount, 6)} ETH</td>
+        <td>${c.block}</td>
+        <td><a href="https://basescan.org/tx/${c.tx}" target="_blank" rel="noopener">${short(c.tx)} ↗</a></td>
+      </tr>`).join("") : `<tr><td colspan="4" class="empty">No claims yet</td></tr>`;
+
+    document.getElementById("status").textContent = "updated " + new Date().toLocaleTimeString();
+    errEl.style.display = "none";
+  } catch (e) {
+    errEl.textContent = "Couldn't reach Base RPC: " + (e.message || e) + " — retrying…";
+    errEl.style.display = "block";
+    document.getElementById("status").textContent = "retrying…";
+  }
+}
+
+document.getElementById("token-addr").textContent = TOKEN;
+document.getElementById("escrow-addr").textContent = ESCROW;
+document.getElementById("token-link").href = "https://basescan.org/token/" + TOKEN;
+document.getElementById("flaunch-link").href = "https://flaunch.gg/base/coin/" + TOKEN;
+load();
+setInterval(load, 45000);
+</script>
+</body>
+</html>
