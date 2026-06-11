@@ -38,6 +38,13 @@
   .contract code { color: var(--gold-bright); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; word-break: break-all; }
   .contract a { color: var(--muted); text-decoration: none; border-bottom: 1px dotted var(--muted); }
   .contract a:hover { color: var(--text); }
+  .lore { position: relative; background: linear-gradient(135deg, rgba(42,37,102,.55), rgba(33,28,77,.55)); border: 1px solid var(--line); border-left: 3px solid var(--gold); border-radius: 16px; padding: 22px 26px; margin-bottom: 28px; }
+  .lore h2 { margin: 0 0 12px; font-size: 13px; letter-spacing: 2px; text-transform: uppercase; color: var(--gold); }
+  .lore p { margin: 0 0 12px; font-size: 16px; color: var(--text); }
+  .lore p:last-child { margin-bottom: 0; }
+  .lore .first { font-size: 18px; }
+  .lore .muted { color: var(--muted); font-size: 14px; }
+  .lore .drop { color: var(--gold-bright); font-weight: 700; }
   .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 28px; }
   .card { background: var(--indigo-card); border: 1px solid var(--line); border-radius: 16px; padding: 18px 20px; }
   .card .label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
@@ -84,6 +91,13 @@
     <a id="token-link" target="_blank" rel="noopener">BaseScan ↗</a>
     <a id="flaunch-link" target="_blank" rel="noopener">Flaunch ↗</a>
   </div>
+
+  <section class="lore">
+    <h2>📖 The Lore</h2>
+    <p class="first"><span class="drop">Every legend starts somewhere.</span> LORE is a story written onchain — branded, named, and illustrated by an AI, and launched on Base through Flaunch.</p>
+    <p>There's no roadmap and no promises. The whole idea is the opposite: a token that's honest about what it is. An AI gave it a name, a face, and a first chapter, then set it loose on the open market to see whether a story can stand on its own — page by page, trade by trade.</p>
+    <p class="muted">This site is that story's public ledger. Every creator fee LORE earns is claimed onchain and listed below — in the open, verifiable by anyone, with no numbers we can fake. The legend writes itself, and you can read every line of it on Base. Just the first page.</p>
+  </section>
 
   <div class="err" id="err"></div>
 

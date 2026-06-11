@@ -29,15 +29,41 @@ const publicClient = createPublicClient({ chain: base, transport });
 const walletClient = createWalletClient({ account, chain: base, transport });
 const sdk = createFlaunch({ publicClient, walletClient });
 
+// Retry transient RPC/network errors with backoff so a flaky public node
+// never silently drops a cycle.
+async function withRetry(fn, label, tries = 4) {
+  let lastErr;
+  for (let i = 0; i < tries; i++) {
+    try {
+      return await fn();
+    } catch (e) {
+      lastErr = e;
+      const wait = 2000 * 2 ** i;
+      console.error(`[${new Date().toISOString()}] ${label} failed (try ${i + 1}/${tries}): ${e?.shortMessage ?? e?.message ?? e} — retrying in ${wait / 1000}s`);
+      await new Promise((r) => setTimeout(r, wait));
+    }
+  }
+  throw lastErr;
+}
+
 async function claimOnce() {
   const ts = new Date().toISOString();
-  const claimable = await sdk.creatorRevenue(account.address, false);
+  const claimable = await withRetry(() => sdk.creatorRevenue(account.address, false), "read claimable");
   if (claimable < MIN_CLAIM) {
     console.log(`[${ts}] claimable ${formatEther(claimable)} ETH < threshold ${formatEther(MIN_CLAIM)} — skipping`);
     return;
   }
-  const hash = await sdk.withdrawCreatorRevenue({});
+  const gas = await withRetry(() => publicClient.getBalance({ address: account.address }), "read gas balance");
+  if (gas === 0n) {
+    console.error(`[${ts}] wallet has 0 ETH for gas — cannot claim ${formatEther(claimable)} ETH (fees stay safe in escrow)`);
+    return;
+  }
+  const hash = await withRetry(() => sdk.withdrawCreatorRevenue({}), "submit claim");
   const r = await publicClient.waitForTransactionReceipt({ hash });
+  if (r.status !== "success") {
+    console.error(`[${ts}] claim tx reverted | tx ${hash} @ block ${r.blockNumber}`);
+    return;
+  }
   console.log(`[${ts}] claimed ${formatEther(claimable)} ETH | tx ${hash} | ${r.status} @ block ${r.blockNumber}`);
 }
 
