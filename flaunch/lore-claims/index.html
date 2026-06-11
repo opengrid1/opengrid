@@ -58,6 +58,18 @@
   .lore .first { font-size: 18px; }
   .lore .muted { color: var(--muted); font-size: 14px; }
   .lore .drop { color: var(--gold-bright); font-weight: 700; }
+  .story { background: var(--indigo-card); border: 1px solid var(--line); border-radius: 16px; margin-bottom: 28px; overflow: hidden; }
+  .story summary { cursor: pointer; list-style: none; padding: 18px 24px; font-size: 15px; font-weight: 700; color: var(--gold); display: flex; align-items: center; justify-content: space-between; }
+  .story summary::-webkit-details-marker { display: none; }
+  .story summary::after { content: "▾"; color: var(--muted); transition: transform .2s; }
+  .story[open] summary::after { transform: rotate(180deg); }
+  .story .body { padding: 0 24px 22px; }
+  .story .body h3 { color: var(--gold-bright); font-size: 20px; letter-spacing: 4px; margin: 4px 0 16px; }
+  .story .body p { color: var(--text); font-size: 15px; margin: 0 0 13px; line-height: 1.65; }
+  .story .body p.close { color: var(--muted); font-style: italic; }
+  .story .body a { color: var(--gold); text-decoration: none; font-family: ui-monospace, monospace; }
+  .story .body a:hover { text-decoration: underline; }
+  .story .body code { color: var(--gold-bright); font-family: ui-monospace, monospace; word-break: break-all; }
   .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin-bottom: 20px; }
   .card { background: var(--indigo-card); border: 1px solid var(--line); border-radius: 16px; padding: 18px 20px; }
   .card .label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
@@ -139,6 +151,19 @@
     <p>There's no roadmap and no promises. The whole idea is the opposite: a token that's honest about what it is. An AI gave it a name, a face, and a first chapter, then set it loose on the open market to see whether a story can stand on its own — page by page, trade by trade.</p>
     <p class="muted">This site is that story's public ledger. Every creator fee LORE earns is claimed onchain and listed below — in the open, verifiable by anyone, with no numbers we can fake. The legend writes itself, and you can read every line of it on Base. Just the first page.</p>
   </section>
+
+  <details class="story">
+    <summary>📜 The full story</summary>
+    <div class="body">
+      <h3>LORE — The First Page</h3>
+      <p>Every legend starts somewhere. LORE started as a question: could an AI take a token from nothing — no idea, no art, no code — all the way to live on a real blockchain, with no human drawing the picture or writing the deployment? The answer turned out to be yes.</p>
+      <p>It happened on <strong>Base</strong>, Coinbase's Ethereum layer-2. The AI gave the token a face first, drawing an 800×800 logo from scratch — a dark-indigo circle, a gold open book, a star above it, the word LORE beneath. Then it wrote the launch itself, a script built on Flaunch's SDK and viem, and set the terms: the name <em>Lore</em>, the ticker <em>LORE</em>, a description, a $10,000 opening market cap, and an 80% creator-fee allocation. One signed transaction, and LORE was alive — its art and description pinned to <strong>IPFS</strong>, its market spun up on <strong>Uniswap v4</strong> through Flaunch. Transaction <a href="https://basescan.org/tx/0x8f272c2aaa1f36d26ec41d6f5bd1661ece5ae0fbadc70617db6c00426905b522" target="_blank" rel="noopener">0x8f27…b522</a>, block 47184449, token <code>0x96CD…4df1</code>.</p>
+      <p>And it launched clean. The entire 100-billion supply went straight to the open market — no pre-sale, no team bag, nothing held for insiders. The same transaction minted creator NFT #110893: the on-chain deed that earns the token's trading fees.</p>
+      <p>Then came the second chapter. Those fees needed a clean, dedicated home of their own — <strong>the mythos wallet</strong>, <code>0xcB59…91D5</code>. In a single block, everything was migrated to it from the launch wallet: the pending fees were swept forward (<a href="https://basescan.org/tx/0xd5e1ff1bfc2e3152d2e59b0d3a528720cfb872d975ce2f59eb72aef3d05442c6" target="_blank" rel="noopener">0xd5e1…42c6</a>), the creator NFT moved across (<a href="https://basescan.org/tx/0xe1fee682baf8ba49086833ae5b7b64682e86678f0cc263845ef67717b363a464" target="_blank" rel="noopener">0xe1fe…a464</a>), and the launch wallet emptied behind it (<a href="https://basescan.org/tx/0xa556cfcb7a4fee58396179dd17c9e45f0ca69726987f39fcfa8ec8b763c2bd76" target="_blank" rel="noopener">0xa556…bd76</a>). From that block on, every fee LORE earns flows to the mythos wallet.</p>
+      <p>And none of it is hidden. Every fee is claimed on-chain and shown live, in public, on this dashboard — the mythos wallet's total earned, current balance, and every single claim, each linking straight to BaseScan. No private numbers, nothing to take on faith.</p>
+      <p class="close">An AI named it, drew it, launched it, and wired its fees into the mythos wallet for anyone to watch — then set it loose on Base to see whether a story can stand on its own, page by page, trade by trade. No roadmap. No promises. Just the first page.</p>
+    </div>
+  </details>
 
   <div class="err" id="err"></div>
 
