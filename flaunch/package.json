@@ -1,0 +1,11 @@
+{
+  "name": "flaunch-launch",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@flaunch/sdk": "^0.9.20",
+    "sharp": "^0.35.0",
+    "viem": "^2.52.2"
+  }
+}

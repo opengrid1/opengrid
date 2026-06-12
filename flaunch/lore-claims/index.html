@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>LORE · Public Fee Claims</title>
+<meta name="description" content="Every legend starts somewhere. LORE's creator fees are claimed onchain and shown live on Base — verifiable by anyone, with no numbers we can fake." />
+<meta name="theme-color" content="#171338" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 800'%3E%3Ccircle cx='400' cy='400' r='384' fill='%231d1847' stroke='%23e9b824' stroke-width='32'/%3E%3Cpolygon points='400,170 423,250 505,250 438,300 462,380 400,332 338,380 362,300 295,250 377,250' fill='%23ffd95a'/%3E%3Cpath d='M400,360 C360,330 300,326 260,344 L260,470 C300,454 360,458 400,486 Z' fill='%23e9b824'/%3E%3Cpath d='M400,360 C440,330 500,326 540,344 L540,470 C500,454 440,458 400,486 Z' fill='%23e9b824'/%3E%3C/svg%3E" />
+<!-- Open Graph / Twitter -->
+<meta property="og:type" content="website" />
+<meta property="og:title" content="LORE · Onchain Fee Transparency" />
+<meta property="og:description" content="Every legend starts somewhere. LORE's creator fees, claimed onchain and shown live on Base — verifiable by anyone." />
+<meta property="og:image" content="https://lore-claims.vercel.app/og.png" />
+<meta property="og:url" content="https://lore-claims.vercel.app" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="LORE · Onchain Fee Transparency" />
+<meta name="twitter:description" content="Every legend starts somewhere. LORE's creator fees, claimed onchain and shown live on Base." />
+<meta name="twitter:image" content="https://lore-claims.vercel.app/og.png" />
+<style>
+  :root {
+    --indigo-dark: #171338; --indigo-mid: #2a2566; --indigo-card: #211c4d;
+    --gold: #e9b824; --gold-bright: #ffd95a; --text: #efecff;
+    --muted: #8f86c9; --line: #34306e; --green: #4ade80;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: radial-gradient(120% 100% at 30% 0%, var(--indigo-mid), var(--indigo-dark));
+    color: var(--text); min-height: 100vh; line-height: 1.5;
+  }
+  /* --- life: starfield --- */
+  #stars { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+  #stars .st { position: absolute; border-radius: 50%; background: var(--gold-bright); animation: twinkle var(--d, 4s) ease-in-out var(--dl, 0s) infinite alternate; }
+  @keyframes twinkle { from { opacity: .12; transform: scale(.8); } to { opacity: var(--o, .8); transform: scale(1.15); } }
+  #stars .shoot { position: absolute; width: 130px; height: 2px; border-radius: 2px; opacity: 0;
+    background: linear-gradient(90deg, var(--gold-bright), transparent); transform: rotate(-28deg);
+    animation: shoot 9s linear var(--dl, 0s) infinite; }
+  @keyframes shoot {
+    0%, 92% { opacity: 0; transform: translate(0,0) rotate(-28deg); }
+    93% { opacity: .9; }
+    100% { opacity: 0; transform: translate(-480px, 255px) rotate(-28deg); }
+  }
+  .wrap { max-width: 920px; margin: 0 auto; padding: 32px 20px 64px; position: relative; z-index: 1; }
+  header { display: flex; align-items: center; gap: 18px; margin-bottom: 18px; }
+  header svg { width: 64px; height: 64px; flex: none; animation: floaty 6s ease-in-out infinite; filter: drop-shadow(0 0 14px rgba(233,184,36,.25)); }
+  @keyframes floaty { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+  h1 { font-size: 40px; letter-spacing: 8px; margin: 0; font-weight: 800;
+    background: linear-gradient(90deg, var(--gold) 20%, #fff3c4 40%, var(--gold) 60%); background-size: 200% 100%;
+    -webkit-background-clip: text; background-clip: text; color: transparent; animation: shimmer 7s linear infinite; }
+  @keyframes shimmer { from { background-position: 200% 0; } to { background-position: 0% 0; } }
+  .tagline { color: var(--muted); margin: 2px 0 0; font-size: 15px; }
+  .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+  .btn { display: inline-flex; align-items: center; gap: 7px; padding: 11px 20px; border-radius: 12px; font-size: 14px; font-weight: 700; text-decoration: none; cursor: pointer; border: 1px solid var(--line); transition: transform .08s, filter .15s; }
+  .btn:active { transform: translateY(1px); }
+  .btn.primary { background: var(--gold); color: #2a1d00; border-color: var(--gold); animation: glowpulse 3.2s ease-in-out infinite; }
+  .btn.primary:hover { filter: brightness(1.08); }
+  @keyframes glowpulse { 0%,100% { box-shadow: 0 0 0 rgba(233,184,36,0); } 50% { box-shadow: 0 0 22px rgba(233,184,36,.45); } }
+  .btn.ghost { background: var(--indigo-card); color: var(--text); }
+  .btn.ghost:hover { border-color: var(--gold); color: var(--gold-bright); transform: translateY(-2px); }
+  .contract {
+    margin: 0 0 24px; padding: 12px 16px; background: rgba(0,0,0,.22);
+    border: 1px solid var(--line); border-radius: 12px; font-size: 13px;
+    display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center;
+  }
+  .contract code { color: var(--gold-bright); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; word-break: break-all; cursor: pointer; }
+  .contract code:hover { text-decoration: underline; }
+  .contract a { color: var(--muted); text-decoration: none; border-bottom: 1px dotted var(--muted); }
+  .contract a:hover { color: var(--text); }
+  .copied { color: var(--green) !important; }
+  .lore { position: relative; background: linear-gradient(135deg, rgba(42,37,102,.55), rgba(33,28,77,.55)); border: 1px solid var(--line); border-left: 3px solid var(--gold); border-radius: 16px; padding: 22px 26px; margin-bottom: 28px; }
+  .lore h2 { margin: 0 0 12px; font-size: 13px; letter-spacing: 2px; text-transform: uppercase; color: var(--gold); }
+  .lore p { margin: 0 0 12px; font-size: 16px; color: var(--text); }
+  .lore p:last-child { margin-bottom: 0; }
+  .lore .first { font-size: 18px; }
+  .lore .muted { color: var(--muted); font-size: 14px; }
+  .lore .drop { color: var(--gold-bright); font-weight: 700; }
+  .story { background: var(--indigo-card); border: 1px solid var(--line); border-radius: 16px; margin-bottom: 28px; overflow: hidden; }
+  .story summary { cursor: pointer; list-style: none; padding: 18px 24px; font-size: 15px; font-weight: 700; color: var(--gold); display: flex; align-items: center; justify-content: space-between; }
+  .story summary::-webkit-details-marker { display: none; }
+  .story summary::after { content: "▾"; color: var(--muted); transition: transform .2s; }
+  .story[open] summary::after { transform: rotate(180deg); }
+  .story .body { padding: 0 24px 22px; }
+  .story .body h3 { color: var(--gold-bright); font-size: 20px; letter-spacing: 4px; margin: 4px 0 16px; }
+  .story .body p { color: var(--text); font-size: 15px; margin: 0 0 13px; line-height: 1.65; }
+  .story .body p.close { color: var(--muted); font-style: italic; }
+  .story .body a { color: var(--gold); text-decoration: none; font-family: ui-monospace, monospace; }
+  .story .body a:hover { text-decoration: underline; }
+  .story .body code { color: var(--gold-bright); font-family: ui-monospace, monospace; word-break: break-all; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin-bottom: 20px; }
+  .card { background: var(--indigo-card); border: 1px solid var(--line); border-radius: 16px; padding: 18px 20px;
+    transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease; animation: fadeup .6s ease both; }
+  .card:nth-child(2) { animation-delay: .08s; } .card:nth-child(3) { animation-delay: .16s; } .card:nth-child(4) { animation-delay: .24s; }
+  .card:hover { transform: translateY(-3px); border-color: var(--gold); box-shadow: 0 8px 24px rgba(0,0,0,.35); }
+  @keyframes fadeup { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  tr.enter { animation: fadeup .5s ease both; }
+  .card .label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+  .card .value { font-size: 28px; font-weight: 700; color: var(--gold); }
+  .card .value small { font-size: 14px; color: var(--muted); font-weight: 400; }
+  .card .usd { color: var(--muted); font-size: 13px; margin-top: 4px; }
+  .card.pending .value { color: var(--green); }
+  .spark { background: var(--indigo-card); border: 1px solid var(--line); border-radius: 16px; padding: 16px 20px 8px; margin-bottom: 28px; }
+  .spark .label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+  .spark svg { width: 100%; height: 72px; display: block; }
+  .section-title { display: flex; align-items: baseline; justify-content: space-between; margin: 0 0 12px; gap: 10px; }
+  .section-title h2 { font-size: 18px; margin: 0; color: var(--text); font-weight: 600; }
+  .status { font-size: 12px; color: var(--muted); white-space: nowrap; }
+  .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--green); margin-right: 5px; vertical-align: middle; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
+  .table-wrap { border: 1px solid var(--line); border-radius: 16px; overflow: hidden; }
+  table { width: 100%; border-collapse: collapse; background: var(--indigo-card); }
+  th, td { text-align: left; padding: 12px 16px; font-size: 14px; border-bottom: 1px solid var(--line); }
+  th { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+  tr:last-child td { border-bottom: none; }
+  td.amt { color: var(--gold); font-weight: 600; font-variant-numeric: tabular-nums; }
+  td .usd-cell { color: var(--muted); font-weight: 400; font-size: 12px; }
+  td a { color: var(--muted); text-decoration: none; font-family: ui-monospace, monospace; }
+  td a:hover { color: var(--gold-bright); }
+  @keyframes flash { 0% { background: rgba(233,184,36,.45); } 100% { background: transparent; } }
+  tr.flash { animation: flash 2.5s ease-out; }
+  .empty, .loading { text-align: center; color: var(--muted); padding: 32px; }
+  footer { margin-top: 32px; color: var(--muted); font-size: 12px; text-align: center; line-height: 1.7; }
+  footer code { color: var(--muted); }
+  .err { background: #3a1d2e; border: 1px solid #6b2d4a; color: #ffc9dd; padding: 12px 16px; border-radius: 12px; font-size: 13px; margin-bottom: 16px; display: none; }
+  @media (max-width: 560px) {
+    .wrap { padding: 22px 14px 48px; }
+    h1 { font-size: 30px; letter-spacing: 5px; }
+    header svg { width: 52px; height: 52px; }
+    .btn { flex: 1 1 auto; justify-content: center; }
+    th, td { padding: 11px 12px; font-size: 13px; }
+    .col-block { display: none; }
+  }
+</style>
+</head>
+<body>
+<div id="stars" aria-hidden="true"></div>
+<div class="wrap">
+  <header>
+    <svg viewBox="0 0 800 800" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="400" cy="400" r="386" fill="#1d1847" stroke="#e9b824" stroke-width="14"/>
+      <polygon points="400,156 419,210 476,212 431,247 447,302 400,270 353,302 369,247 324,212 381,210" fill="#ffd95a"/>
+      <path d="M400,330 C355,298 295,294 252,312 L252,448 C295,432 355,436 400,466 Z" fill="#e9b824"/>
+      <path d="M400,330 C445,298 505,294 548,312 L548,448 C505,432 445,436 400,466 Z" fill="#e9b824"/>
+      <line x1="400" y1="332" x2="400" y2="464" stroke="#1d1847" stroke-width="12"/>
+      <text x="400" y="600" text-anchor="middle" font-family="Arial, sans-serif" font-weight="bold" font-size="120" letter-spacing="14" fill="#e9b824">LORE</text>
+    </svg>
+    <div>
+      <h1>LORE</h1>
+      <p class="tagline">Public creator-fee claims · live from Base mainnet</p>
+    </div>
+  </header>
+
+  <div class="actions">
+    <a class="btn primary" id="buy-link" target="_blank" rel="noopener">Buy $LORE on Flaunch ↗</a>
+    <a class="btn ghost" id="chart-link" target="_blank" rel="noopener">📈 Chart</a>
+    <a class="btn ghost" id="scan-link" target="_blank" rel="noopener">BaseScan ↗</a>
+  </div>
+
+  <div class="contract">
+    <span>Contract</span> <code id="token-addr" title="click to copy"></code>
+    <span id="copy-hint" style="color:var(--muted)"></span>
+  </div>
+
+  <div class="contract">
+    <span>Fee wallet</span> <code id="wallet-addr" title="click to copy"></code>
+    <span id="wallet-bal" style="color:var(--gold-bright); font-family:ui-monospace,monospace"></span>
+    <a id="wallet-link" target="_blank" rel="noopener">BaseScan ↗</a>
+    <span style="color:var(--muted)">· holds creator NFT #110893 · receives all creator fees</span>
+  </div>
+
+  <section class="lore">
+    <h2>📖 The Lore</h2>
+    <p class="first"><span class="drop">Every legend starts somewhere.</span> LORE is a story written onchain — branded, named, and illustrated by an AI, and launched on Base through Flaunch.</p>
+    <p>There's no roadmap and no promises. The whole idea is the opposite: a token that's honest about what it is. An AI gave it a name, a face, and a first chapter, then set it loose on the open market to see whether a story can stand on its own — page by page, trade by trade.</p>
+    <p class="muted">This site is that story's public ledger. Every creator fee LORE earns is claimed onchain and listed below — in the open, verifiable by anyone, with no numbers we can fake. The legend writes itself, and you can read every line of it on Base. Just the first page.</p>
+  </section>
+
+  <details class="story">
+    <summary>📜 The full story</summary>
+    <div class="body">
+      <h3>LORE — The First Page</h3>
+      <p>Every legend starts somewhere. LORE started as a question: could an AI take a token from nothing — no idea, no art, no code — all the way to live on a real blockchain, with no human drawing the picture or writing the deployment? The answer turned out to be yes.</p>
+      <p>It happened on <strong>Base</strong>, Coinbase's Ethereum layer-2. The AI gave the token a face first, drawing an 800×800 logo from scratch — a dark-indigo circle, a gold open book, a star above it, the word LORE beneath. Then it wrote the launch itself, a script built on Flaunch's SDK and viem, and set the terms: the name <em>Lore</em>, the ticker <em>LORE</em>, a description, a $10,000 opening market cap, and an 80% creator-fee allocation. One signed transaction, and LORE was alive — its art and description pinned to <strong>IPFS</strong>, its market spun up on <strong>Uniswap v4</strong> through Flaunch. Transaction <a href="https://basescan.org/tx/0x8f272c2aaa1f36d26ec41d6f5bd1661ece5ae0fbadc70617db6c00426905b522" target="_blank" rel="noopener">0x8f27…b522</a>, block 47184449, token <code>0x96CD…4df1</code>.</p>
+      <p>And it launched clean. The entire 100-billion supply went straight to the open market — no pre-sale, no team bag, nothing held for insiders. The same transaction minted creator NFT #110893: the on-chain deed that earns the token's trading fees.</p>
+      <p>Then came the second chapter. Those fees needed a clean, dedicated home of their own — <strong>the mythos wallet</strong>, <code>0xcB59…91D5</code>. In a single block, everything was migrated to it from the launch wallet: the pending fees were swept forward (<a href="https://basescan.org/tx/0xd5e1ff1bfc2e3152d2e59b0d3a528720cfb872d975ce2f59eb72aef3d05442c6" target="_blank" rel="noopener">0xd5e1…42c6</a>), the creator NFT moved across (<a href="https://basescan.org/tx/0xe1fee682baf8ba49086833ae5b7b64682e86678f0cc263845ef67717b363a464" target="_blank" rel="noopener">0xe1fe…a464</a>), and the launch wallet emptied behind it (<a href="https://basescan.org/tx/0xa556cfcb7a4fee58396179dd17c9e45f0ca69726987f39fcfa8ec8b763c2bd76" target="_blank" rel="noopener">0xa556…bd76</a>). From that block on, every fee LORE earns flows to the mythos wallet.</p>
+      <p>And none of it is hidden. Every fee is claimed on-chain and shown live, in public, on this dashboard — the mythos wallet's total earned, current balance, and every single claim, each linking straight to BaseScan. No private numbers, nothing to take on faith.</p>
+      <p class="close">An AI named it, drew it, launched it, and wired its fees into the mythos wallet for anyone to watch — then set it loose on Base to see whether a story can stand on its own, page by page, trade by trade. No roadmap. No promises. Just the first page.</p>
+    </div>
+  </details>
+
+  <div class="err" id="err"></div>
+
+  <div class="cards">
+    <div class="card"><div class="label">Total Claimed</div><div class="value" id="total">…<small> ETH</small></div><div class="usd" id="total-usd"></div></div>
+    <div class="card"><div class="label">Claims Made</div><div class="value" id="count">…</div><div class="usd" id="avg"></div></div>
+    <div class="card pending"><div class="label">Pending in Escrow</div><div class="value" id="pending">…<small> ETH</small></div><div class="usd" id="pending-usd"></div></div>
+    <div class="card"><div class="label">Last Claim</div><div class="value" id="last" style="font-size:18px">…</div><div class="usd" id="ethusd"></div></div>
+  </div>
+
+  <div class="spark">
+    <div class="label">Cumulative Fees Claimed</div>
+    <div id="spark"></div>
+  </div>
+
+  <div class="section-title">
+    <h2>Claim History</h2>
+    <span class="status"><span class="dot"></span><span id="status">loading…</span><span id="next"></span></span>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>When</th><th>Amount</th><th class="col-block">Block</th><th>Transaction</th></tr></thead>
+      <tbody id="rows"><tr><td colspan="4" class="loading">Reading the chain…</td></tr></tbody>
+    </table>
+  </div>
+
+  <footer>
+    This page reads <strong>directly from Base mainnet</strong> in your browser — every figure is decoded live from the
+    Flaunch FeeEscrow contract <code id="escrow-addr"></code>, and USD values come from the onchain Chainlink ETH/USD feed.
+    Nothing here is stored on a server; verify any row on BaseScan.<br/>
+    Fees are claimed by the holder of the creator NFT. Auto-refreshes every 45 seconds.
+  </footer>
+</div>
+
+<script>
+const RPCS = ["https://mainnet.base.org", "https://base.llamarpc.com", "https://base-rpc.publicnode.com", "https://1rpc.io/base"];
+const TOKEN = "0x96CD6f9FABb448924f717af8eD693eE636264df1";
+const ESCROW = "0x72e6f7948b1B1A343B477F39aAbd2E35E6D27dde";
+// Withdrawal(address _sender, address _recipient, address _token, uint256 _amount)
+const TOPIC = "0x342e7ff505a8a0364cd0dc2ff195c315e43bce86b204846ecd36913e117b109e";
+const BAL_SELECTOR = "0x27e235e3"; // balances(address)
+const CHAINLINK_ETHUSD = "0x71041dddad3595F9CEd3DcCFBe3D1F4b0a16Bb70"; // Base ETH/USD feed
+const LATEST_ROUND = "0xfeaf968c"; // latestRoundData()
+// Creator fees were claimed to the original creator wallet and then to the current fee wallet.
+const WALLETS = ["0x8b353febe45911d12bea9efe0b549909b417ed8b", "0xcb59181b251bb98133b7200c34f1619864d291d5"];
+const FEE_WALLET = "0xcb59181b251bb98133b7200c34f1619864d291d5";
+const LAUNCH_BLOCK = 47184400n;
+const CHUNK = 9000n;
+
+let rpcIdx = 0;
+async function rpc(method, params) {
+  for (let i = 0; i < RPCS.length; i++) {
+    const url = RPCS[(rpcIdx + i) % RPCS.length];
+    try {
+      const r = await fetch(url, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }) });
+      const j = await r.json();
+      if (j.error) throw new Error(j.error.message);
+      rpcIdx = (rpcIdx + i) % RPCS.length;
+      return j.result;
+    } catch (e) { if (i === RPCS.length - 1) throw e; }
+  }
+}
+const hx = (n) => "0x" + n.toString(16);
+const eth = (wei) => Number(wei) / 1e18;
+const fmt = (wei, dp = 4) => eth(wei).toFixed(dp);
+const short = (a) => a.slice(0, 6) + "…" + a.slice(-4);
+const usd = (wei, price) => price ? "$" + (eth(wei) * price).toLocaleString("en-US", { maximumFractionDigits: 2 }) : "";
+function ago(ts) {
+  const s = Math.floor(Date.now() / 1000 - ts);
+  if (s < 60) return s + "s ago";
+  if (s < 3600) return Math.floor(s / 60) + "m ago";
+  if (s < 86400) return Math.floor(s / 3600) + "h ago";
+  return Math.floor(s / 86400) + "d ago";
+}
+
+function sparkline(claimsAsc) {
+  if (claimsAsc.length < 2) return "";
+  const W = 880, H = 72, pad = 4;
+  let cum = 0n;
+  const pts = claimsAsc.map((c, i) => { cum += c.amount; return { x: i, y: eth(cum) }; });
+  const maxY = pts[pts.length - 1].y || 1;
+  const sx = (x) => pad + (x / (pts.length - 1)) * (W - 2 * pad);
+  const sy = (y) => H - pad - (y / maxY) * (H - 2 * pad);
+  const line = pts.map((p, i) => (i ? "L" : "M") + sx(p.x).toFixed(1) + " " + sy(p.y).toFixed(1)).join(" ");
+  const area = "M" + sx(0) + " " + H + " " + line.replace("M", "L").slice(1) + " L" + sx(pts.length - 1) + " " + H + " Z";
+  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
+    <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e9b824" stop-opacity="0.5"/><stop offset="1" stop-color="#e9b824" stop-opacity="0.03"/>
+    </linearGradient></defs>
+    <path d="${area}" fill="url(#g)"/>
+    <path d="${line}" fill="none" stroke="#ffd95a" stroke-width="3" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>
+  </svg>`;
+}
+
+let lastTopTx = null;
+let firstLoad = true;
+let nextRefreshAt = 0;
+const REFRESH_MS = 45000;
+const motionOK = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+// starfield
+(function stars() {
+  const c = document.getElementById("stars");
+  if (!motionOK) return;
+  let html = "";
+  for (let i = 0; i < 44; i++) {
+    const s = (Math.random() * 2 + 1.2).toFixed(1);
+    html += `<span class="st" style="left:${(Math.random() * 100).toFixed(2)}%;top:${(Math.random() * 100).toFixed(2)}%;width:${s}px;height:${s}px;--d:${(Math.random() * 4 + 2.5).toFixed(1)}s;--dl:${(Math.random() * 5).toFixed(1)}s;--o:${(Math.random() * .5 + .4).toFixed(2)}"></span>`;
+  }
+  html += `<span class="shoot" style="left:72%;top:8%;--dl:3s"></span>`;
+  html += `<span class="shoot" style="left:38%;top:2%;--dl:11s"></span>`;
+  c.innerHTML = html;
+})();
+
+// animated count-up for stat values
+function countUp(el, target, suffixHTML, dp) {
+  if (!motionOK || !firstLoad) { el.innerHTML = target.toFixed(dp) + suffixHTML; return; }
+  const t0 = performance.now(), dur = 1100;
+  (function tick(t) {
+    const p = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - p, 3);
+    el.innerHTML = (target * e).toFixed(dp) + suffixHTML;
+    if (p < 1) requestAnimationFrame(tick);
+  })(t0);
+}
+
+// live countdown to next refresh
+setInterval(() => {
+  const el = document.getElementById("next");
+  if (!nextRefreshAt) return;
+  const s = Math.max(0, Math.ceil((nextRefreshAt - Date.now()) / 1000));
+  el.textContent = " · next read " + (s > 0 ? "in " + s + "s" : "now…");
+}, 1000);
+
+async function load() {
+  const errEl = document.getElementById("err");
+  try {
+    const latest = BigInt(await rpc("eth_blockNumber", []));
+    const tasks = [];
+    for (let from = LAUNCH_BLOCK; from <= latest; from += CHUNK) {
+      const to = (from + CHUNK - 1n > latest) ? latest : from + CHUNK - 1n;
+      tasks.push(rpc("eth_getLogs", [{ address: ESCROW, topics: [TOPIC], fromBlock: hx(from), toBlock: hx(to) }]));
+    }
+    let logs = [];
+    for (const chunk of await Promise.all(tasks)) logs = logs.concat(chunk);
+
+    const claims = logs.map((l) => {
+      const d = l.data.slice(2);
+      return { recipient: "0x" + d.slice(88, 128), amount: BigInt("0x" + d.slice(192, 256)), tx: l.transactionHash, block: BigInt(l.blockNumber) };
+    }).filter((c) => WALLETS.includes(c.recipient.toLowerCase())).sort((a, b) => (b.block > a.block ? 1 : -1));
+
+    const blocks = [...new Set(claims.map((c) => c.block.toString()))];
+    const tsMap = {};
+    (await Promise.all(blocks.map((b) => rpc("eth_getBlockByNumber", [hx(BigInt(b)), false]))))
+      .forEach((blk, i) => { tsMap[blocks[i]] = parseInt(blk.timestamp, 16); });
+
+    const total = claims.reduce((s, c) => s + c.amount, 0n);
+    const [pendingHex, priceHex, balHex] = await Promise.all([
+      rpc("eth_call", [{ to: ESCROW, data: BAL_SELECTOR + FEE_WALLET.slice(2).padStart(64, "0") }, "latest"]),
+      rpc("eth_call", [{ to: CHAINLINK_ETHUSD, data: LATEST_ROUND }, "latest"]),
+      rpc("eth_getBalance", [FEE_WALLET, "latest"]),
+    ]);
+    const pending = BigInt(pendingHex);
+    const walletBal = BigInt(balHex);
+    const price = Number(BigInt("0x" + priceHex.slice(2).slice(64, 128))) / 1e8; // ETH/USD, 8 decimals
+
+    countUp(document.getElementById("total"), eth(total), "<small> ETH</small>", 4);
+    document.getElementById("total-usd").textContent = usd(total, price);
+    document.getElementById("count").textContent = claims.length;
+    document.getElementById("avg").textContent = claims.length ? "avg " + fmt(total / BigInt(claims.length), 4) + " ETH" : "";
+    countUp(document.getElementById("pending"), eth(pending), "<small> ETH</small>", 4);
+    document.getElementById("pending-usd").textContent = usd(pending, price);
+    document.getElementById("last").textContent = claims.length ? ago(tsMap[claims[0].block.toString()]) : "—";
+    document.getElementById("ethusd").textContent = price ? "ETH = $" + price.toLocaleString("en-US", { maximumFractionDigits: 0 }) : "";
+    document.getElementById("wallet-bal").textContent = "Balance: " + fmt(walletBal) + " ETH" + (price ? " (" + usd(walletBal, price) + ")" : "");
+
+    document.getElementById("spark").innerHTML = sparkline([...claims].reverse());
+
+    const newTop = claims.length ? claims[0].tx : null;
+    const isNew = (tx) => lastTopTx !== null && tx === newTop && newTop !== lastTopTx;
+    document.getElementById("rows").innerHTML = claims.length ? claims.map((c, i) => `
+      <tr class="${isNew(c.tx) ? "flash" : ""}${firstLoad && motionOK ? " enter" : ""}"${firstLoad && motionOK ? ` style="animation-delay:${Math.min(i * 70, 700)}ms"` : ""}>
+        <td>${ago(tsMap[c.block.toString()])}</td>
+        <td class="amt">${fmt(c.amount, 6)} ETH <span class="usd-cell">${usd(c.amount, price)}</span></td>
+        <td class="col-block">${c.block}</td>
+        <td><a href="https://basescan.org/tx/${c.tx}" target="_blank" rel="noopener">${short(c.tx)} ↗</a></td>
+      </tr>`).join("") : `<tr><td colspan="4" class="empty">No claims yet</td></tr>`;
+    lastTopTx = newTop;
+
+    // draw-in animation for the sparkline on first load
+    if (firstLoad && motionOK) {
+      const path = document.querySelector("#spark svg path[stroke]");
+      if (path && path.getTotalLength) {
+        const len = path.getTotalLength();
+        path.style.strokeDasharray = len;
+        path.style.strokeDashoffset = len;
+        path.style.transition = "stroke-dashoffset 1.6s ease";
+        requestAnimationFrame(() => requestAnimationFrame(() => { path.style.strokeDashoffset = "0"; }));
+      }
+    }
+
+    document.getElementById("status").textContent = "updated " + new Date().toLocaleTimeString();
+    errEl.style.display = "none";
+    firstLoad = false;
+    nextRefreshAt = Date.now() + REFRESH_MS;
+  } catch (e) {
+    errEl.textContent = "Couldn't reach Base RPC: " + (e.message || e) + " — retrying…";
+    errEl.style.display = "block";
+    document.getElementById("status").textContent = "retrying…";
+    nextRefreshAt = Date.now() + REFRESH_MS;
+  }
+}
+
+// static links + copy-to-clipboard
+const FEE_WALLET_DISPLAY = "0xcB59181b251BB98133b7200c34F1619864d291D5";
+document.getElementById("token-addr").textContent = TOKEN;
+document.getElementById("wallet-addr").textContent = FEE_WALLET_DISPLAY;
+document.getElementById("escrow-addr").textContent = ESCROW;
+document.getElementById("buy-link").href = "https://flaunch.gg/base/coin/" + TOKEN;
+document.getElementById("chart-link").href = "https://dexscreener.com/base/" + TOKEN;
+document.getElementById("scan-link").href = "https://basescan.org/token/" + TOKEN;
+document.getElementById("wallet-link").href = "https://basescan.org/address/" + FEE_WALLET;
+function copyOnClick(el, text) {
+  el.addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText(text); const old = el.textContent; el.textContent = "✓ copied"; el.classList.add("copied"); setTimeout(() => { el.textContent = old; el.classList.remove("copied"); }, 1200); } catch (e) {}
+  });
+}
+copyOnClick(document.getElementById("token-addr"), TOKEN);
+copyOnClick(document.getElementById("wallet-addr"), FEE_WALLET_DISPLAY);
+load();
+setInterval(load, REFRESH_MS);
+</script>
+</body>
+</html>
