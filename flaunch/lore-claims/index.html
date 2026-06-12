@@ -29,18 +29,35 @@
     background: radial-gradient(120% 100% at 30% 0%, var(--indigo-mid), var(--indigo-dark));
     color: var(--text); min-height: 100vh; line-height: 1.5;
   }
-  .wrap { max-width: 920px; margin: 0 auto; padding: 32px 20px 64px; }
+  /* --- life: starfield --- */
+  #stars { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+  #stars .st { position: absolute; border-radius: 50%; background: var(--gold-bright); animation: twinkle var(--d, 4s) ease-in-out var(--dl, 0s) infinite alternate; }
+  @keyframes twinkle { from { opacity: .12; transform: scale(.8); } to { opacity: var(--o, .8); transform: scale(1.15); } }
+  #stars .shoot { position: absolute; width: 130px; height: 2px; border-radius: 2px; opacity: 0;
+    background: linear-gradient(90deg, var(--gold-bright), transparent); transform: rotate(-28deg);
+    animation: shoot 9s linear var(--dl, 0s) infinite; }
+  @keyframes shoot {
+    0%, 92% { opacity: 0; transform: translate(0,0) rotate(-28deg); }
+    93% { opacity: .9; }
+    100% { opacity: 0; transform: translate(-480px, 255px) rotate(-28deg); }
+  }
+  .wrap { max-width: 920px; margin: 0 auto; padding: 32px 20px 64px; position: relative; z-index: 1; }
   header { display: flex; align-items: center; gap: 18px; margin-bottom: 18px; }
-  header svg { width: 64px; height: 64px; flex: none; }
-  h1 { font-size: 40px; letter-spacing: 8px; margin: 0; color: var(--gold); font-weight: 800; }
+  header svg { width: 64px; height: 64px; flex: none; animation: floaty 6s ease-in-out infinite; filter: drop-shadow(0 0 14px rgba(233,184,36,.25)); }
+  @keyframes floaty { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+  h1 { font-size: 40px; letter-spacing: 8px; margin: 0; font-weight: 800;
+    background: linear-gradient(90deg, var(--gold) 20%, #fff3c4 40%, var(--gold) 60%); background-size: 200% 100%;
+    -webkit-background-clip: text; background-clip: text; color: transparent; animation: shimmer 7s linear infinite; }
+  @keyframes shimmer { from { background-position: 200% 0; } to { background-position: 0% 0; } }
   .tagline { color: var(--muted); margin: 2px 0 0; font-size: 15px; }
   .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
   .btn { display: inline-flex; align-items: center; gap: 7px; padding: 11px 20px; border-radius: 12px; font-size: 14px; font-weight: 700; text-decoration: none; cursor: pointer; border: 1px solid var(--line); transition: transform .08s, filter .15s; }
   .btn:active { transform: translateY(1px); }
-  .btn.primary { background: var(--gold); color: #2a1d00; border-color: var(--gold); }
+  .btn.primary { background: var(--gold); color: #2a1d00; border-color: var(--gold); animation: glowpulse 3.2s ease-in-out infinite; }
   .btn.primary:hover { filter: brightness(1.08); }
+  @keyframes glowpulse { 0%,100% { box-shadow: 0 0 0 rgba(233,184,36,0); } 50% { box-shadow: 0 0 22px rgba(233,184,36,.45); } }
   .btn.ghost { background: var(--indigo-card); color: var(--text); }
-  .btn.ghost:hover { border-color: var(--gold); color: var(--gold-bright); }
+  .btn.ghost:hover { border-color: var(--gold); color: var(--gold-bright); transform: translateY(-2px); }
   .contract {
     margin: 0 0 24px; padding: 12px 16px; background: rgba(0,0,0,.22);
     border: 1px solid var(--line); border-radius: 12px; font-size: 13px;
@@ -71,7 +88,12 @@
   .story .body a:hover { text-decoration: underline; }
   .story .body code { color: var(--gold-bright); font-family: ui-monospace, monospace; word-break: break-all; }
   .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin-bottom: 20px; }
-  .card { background: var(--indigo-card); border: 1px solid var(--line); border-radius: 16px; padding: 18px 20px; }
+  .card { background: var(--indigo-card); border: 1px solid var(--line); border-radius: 16px; padding: 18px 20px;
+    transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease; animation: fadeup .6s ease both; }
+  .card:nth-child(2) { animation-delay: .08s; } .card:nth-child(3) { animation-delay: .16s; } .card:nth-child(4) { animation-delay: .24s; }
+  .card:hover { transform: translateY(-3px); border-color: var(--gold); box-shadow: 0 8px 24px rgba(0,0,0,.35); }
+  @keyframes fadeup { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  tr.enter { animation: fadeup .5s ease both; }
   .card .label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
   .card .value { font-size: 28px; font-weight: 700; color: var(--gold); }
   .card .value small { font-size: 14px; color: var(--muted); font-weight: 400; }
@@ -111,6 +133,7 @@
 </style>
 </head>
 <body>
+<div id="stars" aria-hidden="true"></div>
 <div class="wrap">
   <header>
     <svg viewBox="0 0 800 800" xmlns="http://www.w3.org/2000/svg">
@@ -181,7 +204,7 @@
 
   <div class="section-title">
     <h2>Claim History</h2>
-    <span class="status"><span class="dot"></span><span id="status">loading…</span></span>
+    <span class="status"><span class="dot"></span><span id="status">loading…</span><span id="next"></span></span>
   </div>
   <div class="table-wrap">
     <table>
@@ -259,7 +282,43 @@ function sparkline(claimsAsc) {
 }
 
 let lastTopTx = null;
-let priceWei = 0;
+let firstLoad = true;
+let nextRefreshAt = 0;
+const REFRESH_MS = 45000;
+const motionOK = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+// starfield
+(function stars() {
+  const c = document.getElementById("stars");
+  if (!motionOK) return;
+  let html = "";
+  for (let i = 0; i < 44; i++) {
+    const s = (Math.random() * 2 + 1.2).toFixed(1);
+    html += `<span class="st" style="left:${(Math.random() * 100).toFixed(2)}%;top:${(Math.random() * 100).toFixed(2)}%;width:${s}px;height:${s}px;--d:${(Math.random() * 4 + 2.5).toFixed(1)}s;--dl:${(Math.random() * 5).toFixed(1)}s;--o:${(Math.random() * .5 + .4).toFixed(2)}"></span>`;
+  }
+  html += `<span class="shoot" style="left:72%;top:8%;--dl:3s"></span>`;
+  html += `<span class="shoot" style="left:38%;top:2%;--dl:11s"></span>`;
+  c.innerHTML = html;
+})();
+
+// animated count-up for stat values
+function countUp(el, target, suffixHTML, dp) {
+  if (!motionOK || !firstLoad) { el.innerHTML = target.toFixed(dp) + suffixHTML; return; }
+  const t0 = performance.now(), dur = 1100;
+  (function tick(t) {
+    const p = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - p, 3);
+    el.innerHTML = (target * e).toFixed(dp) + suffixHTML;
+    if (p < 1) requestAnimationFrame(tick);
+  })(t0);
+}
+
+// live countdown to next refresh
+setInterval(() => {
+  const el = document.getElementById("next");
+  if (!nextRefreshAt) return;
+  const s = Math.max(0, Math.ceil((nextRefreshAt - Date.now()) / 1000));
+  el.textContent = " · next read " + (s > 0 ? "in " + s + "s" : "now…");
+}, 1000);
 
 async function load() {
   const errEl = document.getElementById("err");
@@ -293,11 +352,11 @@ async function load() {
     const walletBal = BigInt(balHex);
     const price = Number(BigInt("0x" + priceHex.slice(2).slice(64, 128))) / 1e8; // ETH/USD, 8 decimals
 
-    document.getElementById("total").innerHTML = fmt(total) + "<small> ETH</small>";
+    countUp(document.getElementById("total"), eth(total), "<small> ETH</small>", 4);
     document.getElementById("total-usd").textContent = usd(total, price);
     document.getElementById("count").textContent = claims.length;
     document.getElementById("avg").textContent = claims.length ? "avg " + fmt(total / BigInt(claims.length), 4) + " ETH" : "";
-    document.getElementById("pending").innerHTML = fmt(pending) + "<small> ETH</small>";
+    countUp(document.getElementById("pending"), eth(pending), "<small> ETH</small>", 4);
     document.getElementById("pending-usd").textContent = usd(pending, price);
     document.getElementById("last").textContent = claims.length ? ago(tsMap[claims[0].block.toString()]) : "—";
     document.getElementById("ethusd").textContent = price ? "ETH = $" + price.toLocaleString("en-US", { maximumFractionDigits: 0 }) : "";
@@ -307,8 +366,8 @@ async function load() {
 
     const newTop = claims.length ? claims[0].tx : null;
     const isNew = (tx) => lastTopTx !== null && tx === newTop && newTop !== lastTopTx;
-    document.getElementById("rows").innerHTML = claims.length ? claims.map((c) => `
-      <tr class="${isNew(c.tx) ? "flash" : ""}">
+    document.getElementById("rows").innerHTML = claims.length ? claims.map((c, i) => `
+      <tr class="${isNew(c.tx) ? "flash" : ""}${firstLoad && motionOK ? " enter" : ""}"${firstLoad && motionOK ? ` style="animation-delay:${Math.min(i * 70, 700)}ms"` : ""}>
         <td>${ago(tsMap[c.block.toString()])}</td>
         <td class="amt">${fmt(c.amount, 6)} ETH <span class="usd-cell">${usd(c.amount, price)}</span></td>
         <td class="col-block">${c.block}</td>
@@ -316,12 +375,27 @@ async function load() {
       </tr>`).join("") : `<tr><td colspan="4" class="empty">No claims yet</td></tr>`;
     lastTopTx = newTop;
 
+    // draw-in animation for the sparkline on first load
+    if (firstLoad && motionOK) {
+      const path = document.querySelector("#spark svg path[stroke]");
+      if (path && path.getTotalLength) {
+        const len = path.getTotalLength();
+        path.style.strokeDasharray = len;
+        path.style.strokeDashoffset = len;
+        path.style.transition = "stroke-dashoffset 1.6s ease";
+        requestAnimationFrame(() => requestAnimationFrame(() => { path.style.strokeDashoffset = "0"; }));
+      }
+    }
+
     document.getElementById("status").textContent = "updated " + new Date().toLocaleTimeString();
     errEl.style.display = "none";
+    firstLoad = false;
+    nextRefreshAt = Date.now() + REFRESH_MS;
   } catch (e) {
     errEl.textContent = "Couldn't reach Base RPC: " + (e.message || e) + " — retrying…";
     errEl.style.display = "block";
     document.getElementById("status").textContent = "retrying…";
+    nextRefreshAt = Date.now() + REFRESH_MS;
   }
 }
 
@@ -342,7 +416,7 @@ function copyOnClick(el, text) {
 copyOnClick(document.getElementById("token-addr"), TOKEN);
 copyOnClick(document.getElementById("wallet-addr"), FEE_WALLET_DISPLAY);
 load();
-setInterval(load, 45000);
+setInterval(load, REFRESH_MS);
 </script>
 </body>
 </html>
